@@ -1,0 +1,37 @@
+{
+  "name": "@plugjs/build",
+  "version": "0.1.1",
+  "description": "Simple shared build using PlugJS",
+  "main": "./dist/build.cjs",
+  "module": "./dist/build.mjs",
+  "types": "./dist/build.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/build.d.ts",
+        "default": "./dist/build.mjs"
+      },
+      "require": {
+        "types": "./dist/build.d.ts",
+        "default": "./dist/build.cjs"
+      }
+    }
+  },
+  "scripts": {
+    "build": "plug"
+  },
+  "dependencies": {
+    "@plugjs/cov8": "^0.1.1",
+    "@plugjs/eslint": "^0.1.1",
+    "@plugjs/eslint-plugin": "^0.1.1",
+    "@plugjs/jasmine": "^0.1.1",
+    "@plugjs/plug": "^0.1.1",
+    "@plugjs/typescript": "^0.1.1"
+  },
+  "files": [
+    "*.md",
+    "dist/",
+    "resources/",
+    "src/"
+  ]
+}
