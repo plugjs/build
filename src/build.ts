@@ -109,23 +109,22 @@ export function tasks(options: TasksOptions = {}) {
 
   return build({
     /* ====================================================================== *
-     * INITIALIZE REPOSITORY                                                  *
-     * ====================================================================== */
-
-    /** Initialize repository */
-    async init(): Promise<Pipe> {
-      return find('**/*', { directory: '@../resources' })
-          .copy('.', { rename: (rel) => rel.replace(/(^|\/)dot_/, '$1.') })
-          .debug('Build initialized')
-    },
-
-    /* ====================================================================== *
      * SOURCES STRUCTURE                                                      *
      * ====================================================================== */
 
-    /** Find all library source files */
+    /** Find all CommonJS source files (`*.cts`) */
+    find_sources_cts(): Pipe {
+      return find('**/*.(c)?ts', { directory: sourceDir, ignore: '**/*.d.ts' })
+    },
+
+    /** Find all EcmaScript Module source files (`*.mts`) */
+    find_sources_mts(): Pipe {
+      return find('**/*.(m)?ts', { directory: sourceDir, ignore: '**/*.d.ts' })
+    },
+
+    /** Find all typescript source files (`*.ts`, `*.mts` and `*.cts`) */
     find_sources(): Pipe {
-      return find('**/*.ts', { directory: sourceDir, ignore: '**/*.d.ts' })
+      return merge([ this.find_sources_cts(), this.find_sources_mts() ])
     },
 
     /** Find all types definition files within sources */
@@ -142,7 +141,7 @@ export function tasks(options: TasksOptions = {}) {
 
     /** Find all resource files (non-typescript files) within sources */
     find_resources(): Pipe {
-      return find('**/*', { directory: sourceDir, ignore: '**/*.ts' })
+      return find('**/*', { directory: sourceDir, ignore: '**/*.([mt])?ts' })
     },
 
     /** Find all test source files */
@@ -156,8 +155,7 @@ export function tasks(options: TasksOptions = {}) {
 
     /** Transpile to CJS */
     transpile_cjs(): Pipe {
-      return this
-          .find_sources()
+      return this.find_sources_cts()
           .esbuild({
             ...esbuildMergedOptions,
             format: 'cjs',
@@ -168,8 +166,7 @@ export function tasks(options: TasksOptions = {}) {
 
     /** Transpile to ESM */
     transpile_esm(): Pipe {
-      return this
-          .find_sources()
+      return this.find_sources_mts()
           .esbuild({
             ...esbuildMergedOptions,
             format: 'esm',
