@@ -1,7 +1,13 @@
-PlugJS Build System
-===================
+Simple shared build using PlugJS
+================================
 
-Prototype build system from [Juit GmbH](https://www.juit.com/)
+Setup with
+
+```bash
+$ npx '@plugjs/build'
+$ npm install
+$ npm run build
+```
 
 * [Copyright Notice](NOTICE.md)
 * [License](LICENSE.md)
