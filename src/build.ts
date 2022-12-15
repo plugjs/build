@@ -141,7 +141,7 @@ export function tasks(options: TasksOptions = {}) {
 
     /** Find all resource files (non-typescript files) within sources */
     find_resources(): Pipe {
-      return find('**/*', { directory: sourceDir, ignore: '**/*.([mt])?ts' })
+      return find('**/*', { directory: sourceDir, ignore: '**/*.([cm])?ts' })
     },
 
     /** Find all test source files */
