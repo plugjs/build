@@ -199,7 +199,9 @@ export function tasks(options: TasksOptions = {}) {
     },
 
     /** Transpile all source code */
-    transpile(): Pipe {
+    async transpile(): Promise<Pipe> {
+      if (isDirectory(destDir)) await rmrf(destDir)
+
       return merge([
         this.transpile_cjs(),
         this.transpile_esm(),
@@ -263,8 +265,6 @@ export function tasks(options: TasksOptions = {}) {
 
     /** Build everything */
     async default(): Promise<void> {
-      if (isDirectory(destDir)) await rmrf(destDir)
-
       await Promise.all([
         this.test(),
         this.coverage(),
