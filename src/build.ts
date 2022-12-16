@@ -42,6 +42,15 @@ export interface TasksOptions {
   extraTypesDir?: string,
 
   /* ======================================================================== *
+   * PACKAGE.JSON OPTIONS                                                     *
+   * ======================================================================== */
+
+  /** The source `package.json` file (default: `package.json`) */
+  packageJson?: string,
+  /** The source `package.json` file (default: same as `packageJson` option) */
+  outputPackageJson?: string,
+
+  /* ======================================================================== *
    * TRANSPILATION OPTIONS                                                    *
    * ======================================================================== */
 
@@ -98,6 +107,9 @@ export function tasks(options: TasksOptions = {}) {
     coverageDataDir = '.coverage-data',
     extraTypesDir = 'types',
 
+    packageJson = 'package.json',
+    outputPackageJson = packageJson,
+
     cjsExtension = '.cjs',
     esmExtension = '.mjs',
     cjsTranspile = true,
@@ -129,6 +141,10 @@ export function tasks(options: TasksOptions = {}) {
     coverageDataDir: coverageDataDir,
     /** A directory containing extra types to use while transpiling (default: `types`) */
     extraTypesDir: extraTypesDir,
+    /** The source `package.json` file (default: `package.json`) */
+    packageJson: packageJson,
+    /** The source `package.json` file (default: same as `packageJson` option) */
+    outputPackageJson: outputPackageJson,
     /** The extension used for CommonJS modules (default: `.cjs`) */
     cjsExtension: cjsExtension,
     /** The extension used for EcmaScript modules (default: `.mjs`) */
@@ -283,6 +299,20 @@ export function tasks(options: TasksOptions = {}) {
         this.find_types(),
         this.find_extras(),
       ]).eslint()
+    },
+
+    /* ====================================================================== *
+     * PACKAGE.JSON EXPORTS                                                   *
+     * ====================================================================== */
+
+    /** Inject our `exports` in the `package.json` file */
+    exports(): Pipe {
+      return this.transpile().exports({
+        cjsExtension: this.cjsExtension,
+        esmExtension: this.esmExtension,
+        packageJson: this.packageJson,
+        outputPackageJson: this.outputPackageJson,
+      })
     },
 
     /* ====================================================================== *
