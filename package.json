@@ -28,7 +28,7 @@
     "@plugjs/eslint": "^0.1.2",
     "@plugjs/eslint-plugin": "^0.1.1",
     "@plugjs/jasmine": "^0.1.2",
-    "@plugjs/plug": "^0.1.3",
+    "@plugjs/plug": "^0.1.4",
     "@plugjs/typescript": "^0.1.2"
   },
   "files": [
