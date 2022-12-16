@@ -255,17 +255,24 @@ export function tasks(options: TasksOptions = {}) {
     },
 
     /** Run tests (always) and generate a coverage report */
-    async coverage(): Promise<void> {
-      await this
-          .test()
-          .finally(() => this.find_sources()
-              .coverage(this.coverageDataDir, {
-                reportDir: this.coverageDir,
-                minimumCoverage,
-                minimumFileCoverage,
-                optimalCoverage,
-                optimalFileCoverage,
-              }))
+    async coverage(): Promise<Pipe> {
+      // Capture error from running tests
+      const error = await this.test().catch((error) => error)
+
+      // Produce coverage results
+      const files = await this
+          .find_sources()
+          .coverage(this.coverageDataDir, {
+            reportDir: this.coverageDir,
+            minimumCoverage,
+            minimumFileCoverage,
+            optimalCoverage,
+            optimalFileCoverage,
+          })
+
+      // If tests failed, fail here too
+      if (error) throw error
+      return files
     },
 
     /** Run test and emit coverage data */
