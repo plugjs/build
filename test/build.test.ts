@@ -1,6 +1,6 @@
 import { join } from 'node:path'
 
-import { $p, find, log, mkdtemp, rmrf } from '@plugjs/plug'
+import { $p, BuildFailure, find, log, mkdtemp, rmrf } from '@plugjs/plug'
 
 import { tasks } from '../src/build'
 
@@ -28,6 +28,8 @@ describe('PlugJS Shared Build', () => {
       const build = tasks() // destDir as a build prop!
       const transpiled = await build.transpile({ destDir })
       const found = await find('**/*.*', { directory: destDir })
+
+      expect(transpiled.directory).toBe(destDir)
 
       expect([ ...transpiled ])
           .toEqual(jasmine.arrayWithExactContents([ ...found ]))
@@ -64,6 +66,8 @@ describe('PlugJS Shared Build', () => {
       const transpiled = await build.transpile()
       const found = await find('**/*.*', { directory: destDir })
 
+      expect(transpiled.directory).toBe(destDir)
+
       expect([ ...transpiled ])
           .toEqual(jasmine.arrayWithExactContents([ ...found ]))
       expect([ ...transpiled ])
@@ -93,6 +97,8 @@ describe('PlugJS Shared Build', () => {
       const transpiled = await build.transpile()
       const found = await find('**/*.*', { directory: destDir })
 
+      expect(transpiled.directory).toBe(destDir)
+
       expect([ ...transpiled ])
           .toEqual(jasmine.arrayWithExactContents([ ...found ]))
       expect([ ...transpiled ])
@@ -113,8 +119,25 @@ describe('PlugJS Shared Build', () => {
     }
   })
 
+  it('should fail compiling when types are not found', async () => {
+    const destDir = mkdtemp()
+    log('Transpiling to', $p(destDir))
+
+    try {
+      await expectAsync(tasks({ destDir, extraTypesDir: 'no-types' }).transpile())
+          .toBeRejectedWithError(BuildFailure, '')
+    } finally {
+      await rmrf(destDir)
+    }
+  })
+
   it('should run some tests', async () => {
     await tasks({ coverage: false }).test()
+  })
+
+  it('should fail when tests fail', async () => {
+    await expectAsync(tasks({ coverage: false, testGlob: '**/*.(test|fail).([cm])?ts' }).test())
+        .toBeRejectedWithError(BuildFailure, '')
   })
 
   it('should lint all our sources', async () => {
@@ -126,13 +149,39 @@ describe('PlugJS Shared Build', () => {
     log('Coverage directory', $p(tempDir))
 
     try {
-      const build = tasks()
-      await build.coverage({
+      const coverage = await tasks().coverage({
         coverageDir: tempDir,
         coverageDataDir: tempDir,
       })
 
-      log(await find('**/*.*', { directory: tempDir }))
+      const found = await find('**/*.*', { directory: tempDir })
+
+      expect(coverage.directory).toBe(tempDir)
+      expect([ ...coverage ]).toEqual([ 'index.html', 'report.js', 'report.json' ])
+      expect([ ...found ]).toEqual(jasmine.arrayContaining([ ...coverage ]))
+    } finally {
+      await rmrf(tempDir)
+    }
+  })
+
+  it('should prepare a coverage report even when tests fail', async () => {
+    const tempDir = mkdtemp()
+    log('Coverage directory', $p(tempDir))
+
+    try {
+      await expectAsync(tasks({
+        minimumCoverage: 0,
+        optimalCoverage: 0,
+        minimumFileCoverage: 0,
+        optimalFileCoverage: 0,
+      }).coverage({
+        testGlob: '**/*.(test|fail).([cm])?ts',
+        coverageDir: tempDir,
+        coverageDataDir: tempDir,
+      })).toBeRejectedWithError(BuildFailure, '')
+
+      expect([ ...await find('**/*.*', { directory: tempDir }) ])
+          .toEqual(jasmine.arrayContaining([ 'index.html', 'report.js', 'report.json' ]))
     } finally {
       await rmrf(tempDir)
     }
