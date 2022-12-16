@@ -7,7 +7,6 @@ import {
   find,
   fixExtensions,
   isDirectory,
-  log,
   merge,
   noop,
   rmrf,
@@ -43,25 +42,33 @@ export interface TasksOptions {
   extraTypesDir?: string,
 
   /* ======================================================================== *
+   * TRANSPILATION OPTIONS                                                    *
+   * ======================================================================== */
+
+  /** The extension used for CommonJS modules (default: `.cjs`) */
+  cjsExtension?: string,
+  /** The extension used for EcmaScript modules (default: `.mjs`) */
+  esmExtension?: string,
+  /** Enable CommonJS Modules transpilation or not (default: `true`) */
+  cjsTranspile?: boolean,
+  /** Enable EcmaScript Modules transpilation or not (default: `true`) */
+  esmTranspile?: boolean,
+
+  /* ======================================================================== *
    * OTHER OPTIONS                                                            *
    * ======================================================================== */
 
-  /** A glob pattern matching all test files (default: `**∕*.test.ts`) */
+  /** A glob pattern matching all test files (default: `**∕*.test.([cm])?ts`) */
   testGlob?: string,
-  /** Whether to disable tests or not (defailt: `false`) */
-  disableTests?: boolean,
-  /** Whether to disable code coverage or not (defailt: `false`) */
-  disableCoverage?: boolean,
-  /** Whether to disable code linting or not (defailt: `false`) */
-  disableLint?: boolean,
-
-  /** Minimum overall coverage percentage (default: `100`)  */
+  /** Enable coverage when running tests (default: `true`) */
+  coverage?: boolean,
+  /** Minimum overall coverage percentage (default: `100`) */
   minimumCoverage?: number,
-  /** Minimum per-file coverage percentage (default: `100`)  */
+  /** Minimum per-file coverage percentage (default: `100`) */
   minimumFileCoverage?: number,
-  /** Optimal overall coverage percentage (default: _none_)  */
+  /** Optimal overall coverage percentage (default: _none_) */
   optimalCoverage?: number,
-  /** Optimal per-file coverage percentage (default: _none_)  */
+  /** Optimal per-file coverage percentage (default: _none_) */
   optimalFileCoverage?: number,
 
   /**
@@ -91,11 +98,13 @@ export function tasks(options: TasksOptions = {}) {
     coverageDataDir = '.coverage-data',
     extraTypesDir = 'types',
 
-    testGlob = '**/*.test.ts',
-    disableTests = false,
-    disableCoverage = false,
-    disableLint = false,
+    cjsExtension = '.cjs',
+    esmExtension = '.mjs',
+    cjsTranspile = true,
+    esmTranspile = true,
 
+    testGlob = '**/*.test.([cm])?ts',
+    coverage = true,
     minimumCoverage = 100,
     minimumFileCoverage = 100,
     optimalCoverage = undefined,
@@ -108,45 +117,67 @@ export function tasks(options: TasksOptions = {}) {
   const esbuildMergedOptions = Object.assign({}, esbuildDefaults, esbuildOptions)
 
   return build({
+    /** The directory for the original sources (default: `src`) */
+    sourceDir: sourceDir,
+    /** The destination directory of the transpiled sources (default: `dist`) */
+    destDir: destDir,
+    /** The directory for the test files (default: `test`) */
+    testDir: testDir,
+    /** The directory for the coverage report (default: `coverage`) */
+    coverageDir: coverageDir,
+    /** The directory for the coverage data (default: `.coverage-data`) */
+    coverageDataDir: coverageDataDir,
+    /** A directory containing extra types to use while transpiling (default: `types`) */
+    extraTypesDir: extraTypesDir,
+    /** The extension used for CommonJS modules (default: `.cjs`) */
+    cjsExtension: cjsExtension,
+    /** The extension used for EcmaScript modules (default: `.mjs`) */
+    esmExtension: esmExtension,
+    /** A glob pattern matching all test files (default: `**∕*.test.([cm])?ts`) */
+    testGlob: testGlob,
+
     /* ====================================================================== *
      * SOURCES STRUCTURE                                                      *
      * ====================================================================== */
 
     /** Find all CommonJS source files (`*.cts`) */
     find_sources_cts(): Pipe {
-      return find('**/*.(c)?ts', { directory: sourceDir, ignore: '**/*.d.ts' })
+      return find('**/*.(c)?ts', { directory: this.sourceDir, ignore: '**/*.d.ts' })
     },
 
     /** Find all EcmaScript Module source files (`*.mts`) */
     find_sources_mts(): Pipe {
-      return find('**/*.(m)?ts', { directory: sourceDir, ignore: '**/*.d.ts' })
+      return find('**/*.(m)?ts', { directory: this.sourceDir, ignore: '**/*.d.ts' })
     },
 
     /** Find all typescript source files (`*.ts`, `*.mts` and `*.cts`) */
     find_sources(): Pipe {
-      return merge([ this.find_sources_cts(), this.find_sources_mts() ])
+      return merge([
+        cjsTranspile ? this.find_sources_cts() : noop(),
+        esmTranspile ? this.find_sources_mts() : noop(),
+      ])
     },
 
     /** Find all types definition files within sources */
     find_types(): Pipe {
-      return find('**/*.d.ts', { directory: sourceDir })
+      return find('**/*.d.ts', { directory: this.sourceDir })
     },
 
     /** Find all types definition files within sources */
     find_extras(): Pipe {
-      if (! isDirectory(extraTypesDir)) return noop()
-      return find('**/*.d.ts', { directory: extraTypesDir })
+      if (! isDirectory(this.extraTypesDir)) return noop()
+      return find('**/*.d.ts', { directory: this.extraTypesDir })
     },
 
 
     /** Find all resource files (non-typescript files) within sources */
     find_resources(): Pipe {
-      return find('**/*', { directory: sourceDir, ignore: '**/*.([cm])?ts' })
+      return find('**/*', { directory: this.sourceDir, ignore: '**/*.([cm])?ts' })
     },
 
     /** Find all test source files */
     find_tests(): Pipe {
-      return find(testGlob, { directory: testDir, ignore: '**/*.d.ts' })
+      return find(this.testGlob, { directory: this.testDir, ignore: '**/*.d.ts' })
     },
 
     /* ====================================================================== *
@@ -159,8 +190,8 @@ export function tasks(options: TasksOptions = {}) {
           .esbuild({
             ...esbuildMergedOptions,
             format: 'cjs',
-            outdir: destDir,
-            outExtension: { '.js': '.cjs' },
+            outdir: this.destDir,
+            outExtension: { '.js': this.cjsExtension },
           })
     },
 
@@ -170,8 +201,8 @@ export function tasks(options: TasksOptions = {}) {
           .esbuild({
             ...esbuildMergedOptions,
             format: 'esm',
-            outdir: destDir,
-            outExtension: { '.js': '.mjs' },
+            outdir: this.destDir,
+            outExtension: { '.js': this.esmExtension },
           })
     },
 
@@ -183,10 +214,10 @@ export function tasks(options: TasksOptions = {}) {
         this.find_extras(),
       ]).tsc('tsconfig.json', {
         noEmit: false,
-        rootDir: sourceDir,
+        rootDir: this.sourceDir,
         declaration: true,
         emitDeclarationOnly: true,
-        outDir: destDir,
+        outDir: this.destDir,
       })
     },
 
@@ -195,16 +226,16 @@ export function tasks(options: TasksOptions = {}) {
       return merge([
         this.find_resources(),
         this.find_types(),
-      ]).copy(destDir)
+      ]).copy(this.destDir)
     },
 
     /** Transpile all source code */
     async transpile(): Promise<Pipe> {
-      if (isDirectory(destDir)) await rmrf(destDir)
+      if (isDirectory(this.destDir)) await rmrf(this.destDir)
 
       return merge([
-        this.transpile_cjs(),
-        this.transpile_esm(),
+        cjsTranspile ? this.transpile_cjs() : noop(),
+        esmTranspile ? this.transpile_esm() : noop(),
         this.transpile_types(),
         this.transpile_resources(),
       ])
@@ -216,28 +247,20 @@ export function tasks(options: TasksOptions = {}) {
 
     /** Run test and emit coverage data */
     async test(): Promise<void> {
-      if (disableTests) {
-        return void log.warn('Testing disabled')
-      }
-
-      if (isDirectory(coverageDataDir)) await rmrf(coverageDataDir)
+      if (coverage && isDirectory(this.coverageDataDir)) await rmrf(this.coverageDataDir)
 
       await this
           .find_tests()
-          .jasmine({ coverageDir: coverageDataDir })
+          .jasmine({ coverageDir: coverage ? this.coverageDataDir : undefined })
     },
 
     /** Run tests (always) and generate a coverage report */
     async coverage(): Promise<void> {
-      if (disableTests || disableCoverage) {
-        return void log.warn('Coverage disabled')
-      }
-
       await this
           .test()
           .finally(() => this.find_sources()
-              .coverage(coverageDataDir, {
-                reportDir: coverageDir,
+              .coverage(this.coverageDataDir, {
+                reportDir: this.coverageDir,
                 minimumCoverage,
                 minimumFileCoverage,
                 optimalCoverage,
@@ -247,10 +270,6 @@ export function tasks(options: TasksOptions = {}) {
 
     /** Run test and emit coverage data */
     async lint(): Promise<void> {
-      if (disableLint) {
-        return void log.warn('Linting disabled')
-      }
-
       await merge([
         this.find_sources(),
         this.find_tests(),
@@ -262,6 +281,8 @@ export function tasks(options: TasksOptions = {}) {
     /* ====================================================================== *
      * DEFAULT: DO EVERYTHING                                                 *
      * ====================================================================== */
+
+    /* coverage ignore next */
 
     /** Build everything */
     async default(): Promise<void> {
