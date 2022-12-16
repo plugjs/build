@@ -1,4 +1,6 @@
 #!/usr/bin/env node
+
+/* coverage ignore file // we don't test bootstrapping for now */
 import { build, find, invoke, log, resolve, fs, isFile } from '@plugjs/plug'
 import { $p } from '@plugjs/plug/logging'
 
