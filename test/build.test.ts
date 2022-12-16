@@ -1,6 +1,7 @@
 import { join } from 'node:path'
 
-import { $p, BuildFailure, find, log, mkdtemp, rmrf } from '@plugjs/plug'
+import { $p, BuildFailure, find, log, mkdtemp, resolve, rmrf } from '@plugjs/plug'
+import { readFile } from '@plugjs/plug/fs'
 
 import { tasks } from '../src/build'
 
@@ -14,7 +15,6 @@ describe('PlugJS Shared Build', () => {
   afterAll(() => {
     process.chdir(cwd)
   })
-
 
   it('should export a function', () => {
     expect(tasks).toBeInstanceOf(Function)
@@ -51,6 +51,25 @@ describe('PlugJS Shared Build', () => {
             'my_ts.d.ts',
             // dts resource (copied)
             'my_dts.d.ts',
+            // ts with dual source for cjs and mjs
+            'my_xts.cjs',
+            'my_xts.cjs.map',
+            'my_xts.d.cts',
+            'my_xts.mjs',
+            'my_xts.mjs.map',
+            'my_xts.d.mts',
+            // index file
+            'index.cjs',
+            'index.cjs.map',
+            'index.d.ts',
+            'index.mjs',
+            'index.mjs.map',
+            // index file in subpath
+            'my_subpath/index.cjs',
+            'my_subpath/index.cjs.map',
+            'my_subpath/index.d.ts',
+            'my_subpath/index.mjs',
+            'my_subpath/index.mjs.map',
           ]))
     } finally {
       await rmrf(destDir)
@@ -82,6 +101,18 @@ describe('PlugJS Shared Build', () => {
             'my_ts.d.ts',
             // dts resource (copied)
             'my_dts.d.ts',
+            // ts with dual source for cjs and mjs
+            'my_xts.mjs',
+            'my_xts.mjs.map',
+            'my_xts.d.mts',
+            // index file
+            'index.d.ts',
+            'index.mjs',
+            'index.mjs.map',
+            // index file in subpath
+            'my_subpath/index.d.ts',
+            'my_subpath/index.mjs',
+            'my_subpath/index.mjs.map',
           ]))
     } finally {
       await rmrf(destDir)
@@ -113,6 +144,18 @@ describe('PlugJS Shared Build', () => {
             'my_ts.d.ts',
             // dts resource (copied)
             'my_dts.d.ts',
+            // ts with dual source for cjs and mjs
+            'my_xts.cjs',
+            'my_xts.cjs.map',
+            'my_xts.d.cts',
+            // index file
+            'index.cjs',
+            'index.cjs.map',
+            'index.d.ts',
+            // index file in subpath
+            'my_subpath/index.cjs',
+            'my_subpath/index.cjs.map',
+            'my_subpath/index.d.ts',
           ]))
     } finally {
       await rmrf(destDir)
@@ -184,6 +227,129 @@ describe('PlugJS Shared Build', () => {
           .toEqual(jasmine.arrayContaining([ 'index.html', 'report.js', 'report.json' ]))
     } finally {
       await rmrf(tempDir)
+    }
+  })
+
+  it('should prepare a package export list', async () => {
+    const destDir = mkdtemp()
+    log('Transpiling to', $p(destDir))
+
+    try {
+      const outputPackageJson = resolve(destDir, 'package.json')
+      const files = await tasks().exports({ destDir, outputPackageJson })
+
+      expect([ ...files.absolutePaths() ]).toEqual([ outputPackageJson ])
+
+      const data = JSON.parse(await readFile(outputPackageJson, 'utf8'))
+      expect(data).toEqual({
+        name: 'a-test-project',
+        version: '1.2.3',
+        private: true,
+        exports: {
+          '.': {
+            require: { types: './dist/index.d.ts', default: './dist/index.cjs' },
+            import: { types: './dist/index.d.ts', default: './dist/index.mjs' },
+          },
+          './my_cts': {
+            require: { types: './dist/my_cts.d.cts', default: './dist/my_cts.cjs' },
+          },
+          './my_mts': {
+            import: { types: './dist/my_mts.d.mts', default: './dist/my_mts.mjs' },
+          },
+          './my_subpath': {
+            require: { types: './dist/my_subpath/index.d.ts', default: './dist/my_subpath/index.cjs' },
+            import: { types: './dist/my_subpath/index.d.ts', default: './dist/my_subpath/index.mjs' },
+          },
+          './my_ts': {
+            require: { types: './dist/my_ts.d.ts', default: './dist/my_ts.cjs' },
+            import: { types: './dist/my_ts.d.ts', default: './dist/my_ts.mjs' },
+          },
+          './my_xts': {
+            require: { types: './dist/my_xts.d.cts', default: './dist/my_xts.cjs' },
+            import: { types: './dist/my_xts.d.mts', default: './dist/my_xts.mjs' },
+          },
+        },
+      })
+    } finally {
+      await rmrf(destDir)
+    }
+  })
+
+  it('should prepare a package export list for commonjs modules', async () => {
+    const destDir = mkdtemp()
+    log('Transpiling to', $p(destDir))
+
+    try {
+      const outputPackageJson = resolve(destDir, 'package.json')
+      const files = await tasks({ esmTranspile: false }).exports({ destDir, outputPackageJson })
+
+      expect([ ...files.absolutePaths() ]).toEqual([ outputPackageJson ])
+
+      const data = JSON.parse(await readFile(outputPackageJson, 'utf8'))
+
+      expect(data).toEqual({
+        name: 'a-test-project',
+        version: '1.2.3',
+        private: true,
+        exports: {
+          '.': {
+            require: { types: './dist/index.d.ts', default: './dist/index.cjs' },
+          },
+          './my_cts': {
+            require: { types: './dist/my_cts.d.cts', default: './dist/my_cts.cjs' },
+          },
+          './my_subpath': {
+            require: { types: './dist/my_subpath/index.d.ts', default: './dist/my_subpath/index.cjs' },
+          },
+          './my_ts': {
+            require: { types: './dist/my_ts.d.ts', default: './dist/my_ts.cjs' },
+          },
+          './my_xts': {
+            require: { types: './dist/my_xts.d.cts', default: './dist/my_xts.cjs' },
+          },
+        },
+      })
+    } finally {
+      await rmrf(destDir)
+    }
+  })
+
+  it('should prepare a package export list for ecmascript modules', async () => {
+    const destDir = mkdtemp()
+    log('Transpiling to', $p(destDir))
+
+    try {
+      const outputPackageJson = resolve(destDir, 'package.json')
+      const files = await tasks({ cjsTranspile: false }).exports({ destDir, outputPackageJson })
+
+      expect([ ...files.absolutePaths() ]).toEqual([ outputPackageJson ])
+
+      const data = JSON.parse(await readFile(outputPackageJson, 'utf8'))
+
+      expect(data).toEqual({
+        name: 'a-test-project',
+        version: '1.2.3',
+        private: true,
+        exports: {
+          '.': {
+            import: { types: './dist/index.d.ts', default: './dist/index.mjs' },
+          },
+          './my_mts': {
+            import: { types: './dist/my_mts.d.mts', default: './dist/my_mts.mjs' },
+          },
+          './my_subpath': {
+            import: { types: './dist/my_subpath/index.d.ts', default: './dist/my_subpath/index.mjs' },
+          },
+          './my_ts': {
+            import: { types: './dist/my_ts.d.ts', default: './dist/my_ts.mjs' },
+          },
+          './my_xts': {
+            import: { types: './dist/my_xts.d.mts', default: './dist/my_xts.mjs' },
+          },
+        },
+      })
+    } finally {
+      await rmrf(destDir)
     }
   })
 })
