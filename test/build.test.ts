@@ -247,31 +247,62 @@ describe('PlugJS Shared Build', () => {
         name: 'a-test-project',
         version: '1.2.3',
         private: true,
-        main: './dist/index.cjs',
-        module: './dist/index.mjs',
-        types: './dist/index.d.ts',
+        main: './index.cjs',
+        module: './index.mjs',
+        types: './index.d.ts',
         exports: {
           '.': {
-            require: { types: './dist/index.d.ts', default: './dist/index.cjs' },
-            import: { types: './dist/index.d.ts', default: './dist/index.mjs' },
+            require: { types: './index.d.ts', default: './index.cjs' },
+            import: { types: './index.d.ts', default: './index.mjs' },
+          },
+        },
+      })
+    } finally {
+      await rmrf(destDir)
+    }
+  })
+
+  it('should prepare a package export list', async () => {
+    const destDir = mkdtemp()
+    log('Transpiling to', $p(destDir))
+
+    try {
+      const outputPackageJson = resolve(destDir, 'package.json')
+      const files = await tasks({ banners }).exports({ destDir, outputPackageJson, exportsGlob: '**/*.*' })
+
+      expect([ ...files.absolutePaths() ]).toEqual([ outputPackageJson ])
+
+      const data = JSON.parse(await readFile(outputPackageJson, 'utf8'))
+
+      expect(data).toEqual({
+        name: 'a-test-project',
+        version: '1.2.3',
+        private: true,
+        main: './index.cjs',
+        module: './index.mjs',
+        types: './index.d.ts',
+        exports: {
+          '.': {
+            require: { types: './index.d.ts', default: './index.cjs' },
+            import: { types: './index.d.ts', default: './index.mjs' },
           },
           './my_cts': {
-            require: { types: './dist/my_cts.d.cts', default: './dist/my_cts.cjs' },
+            require: { types: './my_cts.d.cts', default: './my_cts.cjs' },
           },
           './my_mts': {
-            import: { types: './dist/my_mts.d.mts', default: './dist/my_mts.mjs' },
+            import: { types: './my_mts.d.mts', default: './my_mts.mjs' },
           },
           './my_subpath': {
-            require: { types: './dist/my_subpath/index.d.ts', default: './dist/my_subpath/index.cjs' },
-            import: { types: './dist/my_subpath/index.d.ts', default: './dist/my_subpath/index.mjs' },
+            require: { types: './my_subpath/index.d.ts', default: './my_subpath/index.cjs' },
+            import: { types: './my_subpath/index.d.ts', default: './my_subpath/index.mjs' },
           },
           './my_ts': {
-            require: { types: './dist/my_ts.d.ts', default: './dist/my_ts.cjs' },
-            import: { types: './dist/my_ts.d.ts', default: './dist/my_ts.mjs' },
+            require: { types: './my_ts.d.ts', default: './my_ts.cjs' },
+            import: { types: './my_ts.d.ts', default: './my_ts.mjs' },
           },
           './my_xts': {
-            require: { types: './dist/my_xts.d.cts', default: './dist/my_xts.cjs' },
-            import: { types: './dist/my_xts.d.mts', default: './dist/my_xts.mjs' },
+            require: { types: './my_xts.d.cts', default: './my_xts.cjs' },
+            import: { types: './my_xts.d.mts', default: './my_xts.mjs' },
           },
         },
       })
@@ -286,7 +317,7 @@ describe('PlugJS Shared Build', () => {
 
     try {
       const outputPackageJson = resolve(destDir, 'package.json')
-      const files = await tasks({ esmTranspile: false, banners }).exports({ destDir, outputPackageJson })
+      const files = await tasks({ esmTranspile: false, banners }).exports({ destDir, outputPackageJson, exportsGlob: '**/*.*' })
 
       expect([ ...files.absolutePaths() ]).toEqual([ outputPackageJson ])
 
@@ -296,23 +327,23 @@ describe('PlugJS Shared Build', () => {
         name: 'a-test-project',
         version: '1.2.3',
         private: true,
-        main: './dist/index.cjs',
-        types: './dist/index.d.ts',
+        main: './index.cjs',
+        types: './index.d.ts',
         exports: {
           '.': {
-            require: { types: './dist/index.d.ts', default: './dist/index.cjs' },
+            require: { types: './index.d.ts', default: './index.cjs' },
           },
           './my_cts': {
-            require: { types: './dist/my_cts.d.cts', default: './dist/my_cts.cjs' },
+            require: { types: './my_cts.d.cts', default: './my_cts.cjs' },
           },
           './my_subpath': {
-            require: { types: './dist/my_subpath/index.d.ts', default: './dist/my_subpath/index.cjs' },
+            require: { types: './my_subpath/index.d.ts', default: './my_subpath/index.cjs' },
           },
           './my_ts': {
-            require: { types: './dist/my_ts.d.ts', default: './dist/my_ts.cjs' },
+            require: { types: './my_ts.d.ts', default: './my_ts.cjs' },
           },
           './my_xts': {
-            require: { types: './dist/my_xts.d.cts', default: './dist/my_xts.cjs' },
+            require: { types: './my_xts.d.cts', default: './my_xts.cjs' },
           },
         },
       })
@@ -327,7 +358,7 @@ describe('PlugJS Shared Build', () => {
 
     try {
       const outputPackageJson = resolve(destDir, 'package.json')
-      const files = await tasks({ cjsTranspile: false, banners }).exports({ destDir, outputPackageJson })
+      const files = await tasks({ cjsTranspile: false, banners }).exports({ destDir, outputPackageJson, exportsGlob: '**/*.*' })
 
       expect([ ...files.absolutePaths() ]).toEqual([ outputPackageJson ])
 
@@ -337,23 +368,23 @@ describe('PlugJS Shared Build', () => {
         name: 'a-test-project',
         version: '1.2.3',
         private: true,
-        module: './dist/index.mjs',
-        types: './dist/index.d.ts',
+        module: './index.mjs',
+        types: './index.d.ts',
         exports: {
           '.': {
-            import: { types: './dist/index.d.ts', default: './dist/index.mjs' },
+            import: { types: './index.d.ts', default: './index.mjs' },
           },
           './my_mts': {
-            import: { types: './dist/my_mts.d.mts', default: './dist/my_mts.mjs' },
+            import: { types: './my_mts.d.mts', default: './my_mts.mjs' },
           },
           './my_subpath': {
-            import: { types: './dist/my_subpath/index.d.ts', default: './dist/my_subpath/index.mjs' },
+            import: { types: './my_subpath/index.d.ts', default: './my_subpath/index.mjs' },
           },
           './my_ts': {
-            import: { types: './dist/my_ts.d.ts', default: './dist/my_ts.mjs' },
+            import: { types: './my_ts.d.ts', default: './my_ts.mjs' },
           },
           './my_xts': {
-            import: { types: './dist/my_xts.d.mts', default: './dist/my_xts.mjs' },
+            import: { types: './my_xts.d.mts', default: './my_xts.mjs' },
           },
         },
       })
