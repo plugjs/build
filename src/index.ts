@@ -110,63 +110,65 @@ export interface TasksOptions {
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function tasks(options: TasksOptions = {}) {
   const {
-    sourceDir = 'src',
-    destDir = 'dist',
-    testDir = 'test',
-    coverageDir = 'coverage',
-    coverageDataDir = '.coverage-data',
-    extraTypesDir = 'types',
+    sourceDir: _sourceDir = 'src',
+    destDir: _destDir = 'dist',
+    testDir: _testDir = 'test',
+    coverageDir: _coverageDir = 'coverage',
+    coverageDataDir: _coverageDataDir = '.coverage-data',
+    extraTypesDir: _extraTypesDir = 'types',
 
-    packageJson = 'package.json',
-    outputPackageJson = packageJson,
+    packageJson: _packageJson = 'package.json',
+    outputPackageJson: _outputPackageJson = _packageJson,
 
-    cjsExtension = '.cjs',
-    esmExtension = '.mjs',
-    cjsTranspile = true,
-    esmTranspile = true,
+    cjsExtension: _cjsExtension = '.cjs',
+    esmExtension: _esmExtension = '.mjs',
+    cjsTranspile: _cjsTranspile = true,
+    esmTranspile: _esmTranspile = true,
 
-    parallelize = false,
-    banners = !parallelize,
-    testGlob = '**/*.test.([cm])?ts',
-    exportsGlob = 'index.*',
-    coverage = true,
-    minimumCoverage = 100,
-    minimumFileCoverage = 100,
-    optimalCoverage = undefined,
-    optimalFileCoverage = undefined,
+    parallelize: _parallelize = false,
+    banners: _banners = !_parallelize,
+    testGlob: _testGlob = '**/*.test.([cm])?ts',
+    exportsGlob: _exportsGlob = 'index.*',
+    coverage: _coverage = true,
+    minimumCoverage: _minimumCoverage = 100,
+    minimumFileCoverage: _minimumFileCoverage = 100,
+    optimalCoverage: _optimalCoverage = undefined,
+    optimalFileCoverage: _optimalFileCoverage = undefined,
 
-    esbuildOptions = {},
+    esbuildOptions: _esbuildOptions = {},
   } = options
 
   // coverage ignore next
-  const banner = banners ? emitBanner : (...args: any) => void args
+  const banner = _banners ? emitBanner : (...args: any) => void args
 
   // Merge esbuild defaults with specified options
-  const esbuildMergedOptions = Object.assign({}, esbuildDefaults, esbuildOptions)
+  const esbuildMergedOptions = Object.assign({}, esbuildDefaults, _esbuildOptions)
 
   return build({
     /** The directory for the original sources (default: `src`) */
-    sourceDir: sourceDir,
+    sourceDir: _sourceDir,
     /** The destination directory of the transpiled sources (default: `dist`) */
-    destDir: destDir,
+    destDir: _destDir,
     /** The directory for the test files (default: `test`) */
-    testDir: testDir,
+    testDir: _testDir,
     /** The directory for the coverage report (default: `coverage`) */
-    coverageDir: coverageDir,
+    coverageDir: _coverageDir,
     /** The directory for the coverage data (default: `.coverage-data`) */
-    coverageDataDir: coverageDataDir,
+    coverageDataDir: _coverageDataDir,
     /** A directory containing extra types to use while transpiling (default: `types`) */
-    extraTypesDir: extraTypesDir,
+    extraTypesDir: _extraTypesDir,
     /** The source `package.json` file (default: `package.json`) */
-    packageJson: packageJson,
+    packageJson: _packageJson,
     /** The source `package.json` file (default: same as `packageJson` option) */
-    outputPackageJson: outputPackageJson,
+    outputPackageJson: _outputPackageJson,
     /** The extension used for CommonJS modules (default: `.cjs`) */
-    cjsExtension: cjsExtension,
+    cjsExtension: _cjsExtension,
     /** The extension used for EcmaScript modules (default: `.mjs`) */
-    esmExtension: esmExtension,
+    esmExtension: _esmExtension,
     /** A glob pattern matching all test files (default: `**∕*.test.([cm])?ts`) */
-    testGlob: testGlob,
+    testGlob: _testGlob,
+    /** A glob pattern matching files to be exported (default: `index.*`) */
+    exportsGlob: _exportsGlob,
 
     /* ====================================================================== *
      * SOURCES STRUCTURE                                                      *
@@ -185,8 +187,8 @@ export function tasks(options: TasksOptions = {}) {
     /** Find all typescript source files (`*.ts`, `*.mts` and `*.cts`) */
     _find_sources(): Pipe {
       return merge([
-        cjsTranspile ? this._find_sources_cts() : noop(),
-        esmTranspile ? this._find_sources_mts() : noop(),
+        _cjsTranspile ? this._find_sources_cts() : noop(),
+        _esmTranspile ? this._find_sources_mts() : noop(),
       ])
     },
 
@@ -268,8 +270,8 @@ export function tasks(options: TasksOptions = {}) {
       if (isDirectory(this.destDir)) await rmrf(this.destDir)
 
       return merge([
-        cjsTranspile ? this.transpile_cjs() : noop(),
-        esmTranspile ? this.transpile_esm() : noop(),
+        _cjsTranspile ? this.transpile_cjs() : noop(),
+        _esmTranspile ? this.transpile_esm() : noop(),
         this.transpile_types(),
         this.transpile_resources(),
       ])
@@ -283,11 +285,11 @@ export function tasks(options: TasksOptions = {}) {
     async test(): Promise<void> {
       banner('Running tests')
 
-      if (coverage && isDirectory(this.coverageDataDir)) await rmrf(this.coverageDataDir)
+      if (_coverage && isDirectory(this.coverageDataDir)) await rmrf(this.coverageDataDir)
 
       await this
           ._find_tests()
-          .jasmine({ coverageDir: coverage ? this.coverageDataDir : undefined })
+          .jasmine({ coverageDir: _coverage ? this.coverageDataDir : undefined })
     },
 
     /** Run tests (always) and generate a coverage report */
@@ -302,10 +304,10 @@ export function tasks(options: TasksOptions = {}) {
             ._find_sources()
             .coverage(this.coverageDataDir, {
               reportDir: this.coverageDir,
-              minimumCoverage,
-              minimumFileCoverage,
-              optimalCoverage,
-              optimalFileCoverage,
+              minimumCoverage: _minimumCoverage,
+              minimumFileCoverage: _minimumFileCoverage,
+              optimalCoverage: _optimalCoverage,
+              optimalFileCoverage: _optimalFileCoverage,
             })
       }
 
@@ -336,7 +338,7 @@ export function tasks(options: TasksOptions = {}) {
       banner('Updating exports in "package.json"')
 
       return merge([ files ])
-          .filter(exportsGlob, { directory: destDir, ignore: '**/*.map' })
+          .filter(this.exportsGlob, { directory: this.destDir, ignore: '**/*.map' })
           .exports({
             cjsExtension: this.cjsExtension,
             esmExtension: this.esmExtension,
@@ -352,7 +354,7 @@ export function tasks(options: TasksOptions = {}) {
     /* coverage ignore next */
     /** Build everything */
     async default(): Promise<void> {
-      if (parallelize) {
+      if (_parallelize) {
         await Promise.all([
           this.coverage(), // implies "test"
           this.lint(),
