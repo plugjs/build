@@ -76,7 +76,7 @@ export interface TasksOptions {
   parallelize?: boolean,
   /** A glob pattern matching all test files (default: `**∕*.test.([cm])?ts`) */
   testGlob?: string,
-  /** A glob pattern matching all test files (default: `**∕*.test.([cm])?ts`) */
+  /** A glob pattern matching files to be exported (default: `index.*`) */
   exportsGlob?: string,
   /** Enable coverage when running tests (default: `true`) */
   coverage?: boolean,
@@ -128,7 +128,7 @@ export function tasks(options: TasksOptions = {}) {
     parallelize = false,
     banners = !parallelize,
     testGlob = '**/*.test.([cm])?ts',
-    exportsGlob = '**/*.*',
+    exportsGlob = 'index.*',
     coverage = true,
     minimumCoverage = 100,
     minimumFileCoverage = 100,
@@ -210,11 +210,6 @@ export function tasks(options: TasksOptions = {}) {
     /** Find all test source files */
     _find_tests(): Pipe {
       return find(this.testGlob, { directory: this.testDir, ignore: '**/*.d.ts' })
-    },
-
-    /** Find exports for `package.json` (defaults to the result of `transpile`) */
-    _find_exports(): Pipe {
-      return this.transpile().filter(exportsGlob)
     },
 
     /* ====================================================================== *
@@ -334,16 +329,20 @@ export function tasks(options: TasksOptions = {}) {
      * PACKAGE.JSON EXPORTS                                                   *
      * ====================================================================== */
 
-    /** Inject our `exports` in the `package.json` file */
-    exports(): Pipe {
+    /** Inject `exports` into the `package.json` file */
+    async exports(): Promise<Pipe> {
+      const files = await this.transpile()
+
       banner('Updating exports in "package.json"')
 
-      return this._find_exports().exports({
-        cjsExtension: this.cjsExtension,
-        esmExtension: this.esmExtension,
-        packageJson: this.packageJson,
-        outputPackageJson: this.outputPackageJson,
-      })
+      return merge([ files ])
+          .filter(exportsGlob, { directory: destDir, ignore: '**/*.map' })
+          .exports({
+            cjsExtension: this.cjsExtension,
+            esmExtension: this.esmExtension,
+            packageJson: this.packageJson,
+            outputPackageJson: this.outputPackageJson,
+          })
     },
 
     /* ====================================================================== *
