@@ -356,14 +356,14 @@ export function tasks(options: TasksOptions = {}) {
     async default(): Promise<void> {
       if (_parallelize) {
         await Promise.all([
+          this.transpile(),
           this.coverage(), // implies "test"
           this.lint(),
-          this.transpile(),
         ])
       } else {
+        await this.transpile()
         await this.coverage() // implies "test"
         await this.lint()
-        await this.transpile()
       }
       await this.exports()
     },
