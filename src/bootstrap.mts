@@ -39,6 +39,7 @@ const tasks = build({
     targetJson.scripts = {
       build: 'plug',
       coverage: 'plug coverage',
+      dev: 'plug coverage -w src -w test',
       lint: 'plug lint',
       test: 'plug test',
       transpile: 'plug transpile',
