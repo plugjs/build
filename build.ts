@@ -1,5 +1,3 @@
-import { build, tasks } from './src/index'
+import { tasks } from './src/index'
 
-export default build({
-  ...tasks(),
-})
+export default tasks()
