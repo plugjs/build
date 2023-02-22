@@ -58,7 +58,7 @@ const tasks = build({
 
     // Overwrite taget package.json file
     log(`Writing ${$p(targetPackage)}`)
-    await fs.writeFile(targetPackage, JSON.stringify(targetJson, null, 2), 'utf-8')
+    await fs.writeFile(targetPackage, JSON.stringify(targetJson, null, 2) + '\n', 'utf-8')
   },
 
   /** Bootstrap the project */
