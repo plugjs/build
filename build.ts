@@ -1,3 +1,7 @@
-import { tasks } from './src/build'
+import { build, tasks } from './src/index'
 
-export default tasks()
+export default build({
+  ...tasks({
+    exportsGlob: 'index.*',
+  }),
+})
