@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /* coverage ignore file // we don't test bootstrapping for now */
-import { build, find, invoke, log, resolve, fs, isFile } from '@plugjs/plug'
+import { build, find, fs, isFile, log, resolve } from '@plugjs/plug'
 import { $p } from '@plugjs/plug/logging'
 
 const tasks = build({
@@ -35,15 +35,25 @@ const tasks = build({
     // Merge package contents
     log(`Updating ${$p(targetPackage)}`)
 
-    if (! targetJson.scripts?.build) {
-      targetJson.scripts = Object.assign({}, targetJson.scripts, {
-        build: 'plug',
-      })
+    // Default scripts
+    targetJson.scripts = {
+      build: 'plug',
+      coverage: 'plug coverage',
+      lint: 'plug lint',
+      test: 'plug test',
+      transpile: 'plug transpile',
+      ...targetJson.scripts,
     }
 
-    targetJson.devDependencies = Object.assign({}, targetJson.devDependencies, {
+    // Exported/packaged files
+    const targetFiles = new Set([ ...(targetJson.files || []), '*.md', 'dist/', 'src/' ])
+    targetJson.files = [ ...targetFiles ].sort()
+
+    // *DEV* dependency on this build
+    targetJson.devDependencies = {
+      ...targetJson.devDependencies,
       [buildJson.name]: `^${buildJson.version}`,
-    })
+    }
 
     // Overwrite taget package.json file
     log(`Writing ${$p(targetPackage)}`)
@@ -59,4 +69,4 @@ const tasks = build({
 })
 
 const overwrite = process.argv[2] === '--overwrite' ? 'overwrite' : 'skip'
-invoke(tasks, 'bootstrap', { overwrite }).catch(log.error)
+tasks.bootstrap({ overwrite }).catch(log.error)
