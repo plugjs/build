@@ -3,10 +3,11 @@ import { join } from 'node:path'
 import { $p, BuildFailure, find, log, mkdtemp, resolve, rmrf } from '@plugjs/plug'
 import { readFile } from '@plugjs/plug/fs'
 
-import { tasks } from '../src/build'
+import { tasks } from '../src/index'
 
 describe('PlugJS Shared Build', () => {
   const cwd = process.cwd()
+  const banners = false
 
   beforeAll(() => {
     process.chdir(join(cwd, 'test', 'sample'))
@@ -25,7 +26,7 @@ describe('PlugJS Shared Build', () => {
     log('Transpiling to', $p(destDir))
 
     try {
-      const build = tasks() // destDir as a build prop!
+      const build = tasks({ banners }) // destDir as a build prop!
       const transpiled = await build.transpile({ destDir })
       const found = await find('**/*.*', { directory: destDir })
 
@@ -81,7 +82,7 @@ describe('PlugJS Shared Build', () => {
     log('Transpiling to', $p(destDir))
 
     try {
-      const build = tasks({ destDir, cjsTranspile: false })
+      const build = tasks({ destDir, cjsTranspile: false, banners })
       const transpiled = await build.transpile()
       const found = await find('**/*.*', { directory: destDir })
 
@@ -124,7 +125,7 @@ describe('PlugJS Shared Build', () => {
     log('Transpiling to', $p(destDir))
 
     try {
-      const build = tasks({ destDir, esmTranspile: false })
+      const build = tasks({ destDir, esmTranspile: false, banners })
       const transpiled = await build.transpile()
       const found = await find('**/*.*', { directory: destDir })
 
@@ -167,7 +168,7 @@ describe('PlugJS Shared Build', () => {
     log('Transpiling to', $p(destDir))
 
     try {
-      await expectAsync(tasks({ destDir, extraTypesDir: 'no-types' }).transpile())
+      await expectAsync(tasks({ destDir, extraTypesDir: 'no-types', banners }).transpile())
           .toBeRejectedWithError(BuildFailure, '')
     } finally {
       await rmrf(destDir)
@@ -175,16 +176,16 @@ describe('PlugJS Shared Build', () => {
   })
 
   it('should run some tests', async () => {
-    await tasks({ coverage: false }).test()
+    await tasks({ coverage: false, banners }).test()
   })
 
   it('should fail when tests fail', async () => {
-    await expectAsync(tasks({ coverage: false, testGlob: '**/*.(test|fail).([cm])?ts' }).test())
+    await expectAsync(tasks({ coverage: false, testGlob: '**/*.(test|fail).([cm])?ts', banners }).test())
         .toBeRejectedWithError(BuildFailure, '')
   })
 
   it('should lint all our sources', async () => {
-    await tasks().lint()
+    await tasks({ banners }).lint()
   })
 
   it('should prepare a coverage report', async () => {
@@ -192,7 +193,7 @@ describe('PlugJS Shared Build', () => {
     log('Coverage directory', $p(tempDir))
 
     try {
-      const coverage = await tasks().coverage({
+      const coverage = await tasks({ banners }).coverage({
         coverageDir: tempDir,
         coverageDataDir: tempDir,
       })
@@ -217,6 +218,7 @@ describe('PlugJS Shared Build', () => {
         optimalCoverage: 0,
         minimumFileCoverage: 0,
         optimalFileCoverage: 0,
+        banners,
       }).coverage({
         testGlob: '**/*.(test|fail).([cm])?ts',
         coverageDir: tempDir,
@@ -236,7 +238,7 @@ describe('PlugJS Shared Build', () => {
 
     try {
       const outputPackageJson = resolve(destDir, 'package.json')
-      const files = await tasks().exports({ destDir, outputPackageJson })
+      const files = await tasks({ banners }).exports({ destDir, outputPackageJson })
 
       expect([ ...files.absolutePaths() ]).toEqual([ outputPackageJson ])
 
@@ -281,7 +283,7 @@ describe('PlugJS Shared Build', () => {
 
     try {
       const outputPackageJson = resolve(destDir, 'package.json')
-      const files = await tasks({ esmTranspile: false }).exports({ destDir, outputPackageJson })
+      const files = await tasks({ esmTranspile: false, banners }).exports({ destDir, outputPackageJson })
 
       expect([ ...files.absolutePaths() ]).toEqual([ outputPackageJson ])
 
@@ -320,7 +322,7 @@ describe('PlugJS Shared Build', () => {
 
     try {
       const outputPackageJson = resolve(destDir, 'package.json')
-      const files = await tasks({ cjsTranspile: false }).exports({ destDir, outputPackageJson })
+      const files = await tasks({ cjsTranspile: false, banners }).exports({ destDir, outputPackageJson })
 
       expect([ ...files.absolutePaths() ]).toEqual([ outputPackageJson ])
 
