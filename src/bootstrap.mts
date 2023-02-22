@@ -9,7 +9,11 @@ const tasks = build({
   async bootstrap_resources(): Promise<void> {
     const pipe = find('**/*', '**/.*', { directory: '@../resources' })
     const sources = await pipe
-    const targets = await pipe.copy('.', { overwrite })
+    const targets = await pipe.copy('.', {
+      // it seems NPM has _some_ problems with some dotfiles (e.g. .gitignore)
+      rename: (relative) => relative.replaceAll(/(^|\/)__dot_/g, '$1.'),
+      overwrite,
+    })
 
     log('Bootstrapped', targets.length, 'of', sources.length, 'files:')
     for (const file of targets.absolutePaths()) log(`    ${$p(file)}`)
