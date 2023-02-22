@@ -138,15 +138,8 @@ export function tasks(options: TasksOptions = {}) {
     esbuildOptions = {},
   } = options
 
-  /** Nice banner */
-  function __banner(message: string): void {
-    if (! banners) return
-    log.notice([
-      '', $gry(`\u2554${''.padStart(60, '\u2550')}\u2557`),
-      `${$gry('\u2551')} ${$wht(message.padEnd(58, ' '))} ${$gry('\u2551')}`,
-      $gry(`\u255A${''.padStart(60, '\u2550')}\u255D`), '',
-    ].join('\n'))
-  }
+  // coverage ignore next
+  const banner = banners ? emitBanner : (...args: any) => void args
 
   // Merge esbuild defaults with specified options
   const esbuildMergedOptions = Object.assign({}, esbuildDefaults, esbuildOptions)
@@ -275,7 +268,7 @@ export function tasks(options: TasksOptions = {}) {
 
     /** Transpile all source code */
     async transpile(): Promise<Pipe> {
-      __banner('Transpiling source files')
+      banner('Transpiling source files')
 
       if (isDirectory(this.destDir)) await rmrf(this.destDir)
 
@@ -293,7 +286,7 @@ export function tasks(options: TasksOptions = {}) {
 
     /** Run test and emit coverage data */
     async test(): Promise<void> {
-      __banner('Running tests')
+      banner('Running tests')
 
       if (coverage && isDirectory(this.coverageDataDir)) await rmrf(this.coverageDataDir)
 
@@ -309,7 +302,7 @@ export function tasks(options: TasksOptions = {}) {
       try {
         await this.test()
       } finally {
-        __banner('Preparing coverage report')
+        banner('Preparing coverage report')
         files = await this
             ._find_sources()
             .coverage(this.coverageDataDir, {
@@ -327,7 +320,7 @@ export function tasks(options: TasksOptions = {}) {
 
     /** Run test and emit coverage data */
     async lint(): Promise<void> {
-      __banner('Linting sources')
+      banner('Linting sources')
 
       await merge([
         this._find_sources(),
@@ -343,7 +336,7 @@ export function tasks(options: TasksOptions = {}) {
 
     /** Inject our `exports` in the `package.json` file */
     exports(): Pipe {
-      __banner('Updating exports in "package.json"')
+      banner('Updating exports in "package.json"')
 
       return this._find_exports().exports({
         cjsExtension: this.cjsExtension,
@@ -358,7 +351,6 @@ export function tasks(options: TasksOptions = {}) {
      * ====================================================================== */
 
     /* coverage ignore next */
-
     /** Build everything */
     async default(): Promise<void> {
       if (parallelize) {
@@ -375,4 +367,14 @@ export function tasks(options: TasksOptions = {}) {
       await this.exports()
     },
   })
+}
+
+/* coverage ignore next */
+/* Leave this at the _end_ of the file, unicode messes up sitemaps... */
+function emitBanner(message: string): void {
+  log.notice([
+    '', $gry(`\u2554${''.padStart(60, '\u2550')}\u2557`),
+    `${$gry('\u2551')} ${$wht(message.padEnd(58, ' '))} ${$gry('\u2551')}`,
+    $gry(`\u255A${''.padStart(60, '\u2550')}\u255D`), '',
+  ].join('\n'))
 }
