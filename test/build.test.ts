@@ -247,6 +247,9 @@ describe('PlugJS Shared Build', () => {
         name: 'a-test-project',
         version: '1.2.3',
         private: true,
+        main: './dist/index.cjs',
+        module: './dist/index.mjs',
+        types: './dist/index.d.ts',
         exports: {
           '.': {
             require: { types: './dist/index.d.ts', default: './dist/index.cjs' },
@@ -293,6 +296,8 @@ describe('PlugJS Shared Build', () => {
         name: 'a-test-project',
         version: '1.2.3',
         private: true,
+        main: './dist/index.cjs',
+        types: './dist/index.d.ts',
         exports: {
           '.': {
             require: { types: './dist/index.d.ts', default: './dist/index.cjs' },
@@ -332,6 +337,8 @@ describe('PlugJS Shared Build', () => {
         name: 'a-test-project',
         version: '1.2.3',
         private: true,
+        module: './dist/index.mjs',
+        types: './dist/index.d.ts',
         exports: {
           '.': {
             import: { types: './dist/index.d.ts', default: './dist/index.mjs' },
