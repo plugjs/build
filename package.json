@@ -1,19 +1,19 @@
 {
   "name": "@plugjs/build",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Simple shared build using PlugJS",
-  "main": "./dist/build.cjs",
-  "module": "./dist/build.mjs",
-  "types": "./dist/build.d.ts",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "import": {
-        "types": "./dist/build.d.ts",
-        "default": "./dist/build.mjs"
-      },
       "require": {
-        "types": "./dist/build.d.ts",
-        "default": "./dist/build.cjs"
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.cjs"
+      },
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.mjs"
       }
     }
   },
@@ -21,15 +21,19 @@
     "bootstrap-plugjs-build": "./dist/bootstrap.mjs"
   },
   "scripts": {
-    "build": "plug"
+    "build": "plug",
+    "coverage": "plug coverage",
+    "lint": "plug lint",
+    "test": "plug test",
+    "transpile": "plug transpile"
   },
   "dependencies": {
-    "@plugjs/cov8": "^0.1.2",
-    "@plugjs/eslint": "^0.1.2",
-    "@plugjs/eslint-plugin": "^0.1.1",
-    "@plugjs/jasmine": "^0.1.2",
-    "@plugjs/plug": "^0.1.4",
-    "@plugjs/typescript": "^0.1.2"
+    "@plugjs/cov8": "file:../plug/plugjs-cov8-0.2.0.tgz",
+    "@plugjs/eslint": "file:../plug/plugjs-eslint-0.2.0.tgz",
+    "@plugjs/eslint-plugin": "^0.1.2",
+    "@plugjs/jasmine": "file:../plug/plugjs-jasmine-0.2.0.tgz",
+    "@plugjs/plug": "file:../plug/plugjs-plug-0.2.0.tgz",
+    "@plugjs/typescript": "file:../plug/plugjs-typescript-0.2.0.tgz"
   },
   "files": [
     "*.md",
