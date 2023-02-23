@@ -13,7 +13,7 @@ import {
 } from '@plugjs/plug'
 import '@plugjs/typescript'
 
-import type { ESBuildOptions, Files, Pipe } from '@plugjs/plug'
+import type { ESBuildOptions, Pipe } from '@plugjs/plug'
 
 export * from '@plugjs/plug'
 
@@ -88,7 +88,6 @@ export interface TasksOptions {
   optimalCoverage?: number,
   /** Optimal per-file coverage percentage (default: _none_) */
   optimalFileCoverage?: number,
-
 
   /**
    * ESBuild compilation options
@@ -197,12 +196,11 @@ export function tasks(options: TasksOptions = {}) {
       return find('**/*.d.ts', { directory: this.sourceDir })
     },
 
-    /** Find all types definition files within sources */
+    /** Find all extra types definition files from `extraTypesDir` */
     _find_extra_types(): Pipe {
       if (! isDirectory(this.extraTypesDir)) return noop()
       return find('**/*.d.ts', { directory: this.extraTypesDir })
     },
-
 
     /** Find all resource files (non-typescript files) within sources */
     _find_resources(): Pipe {
@@ -266,7 +264,7 @@ export function tasks(options: TasksOptions = {}) {
     },
 
     /** Copy all resources coming alongside our sources */
-    transpile_resources(): Pipe {
+    copy_resources(): Pipe {
       return merge([
         this._find_resources(),
         this._find_types(),
@@ -283,7 +281,7 @@ export function tasks(options: TasksOptions = {}) {
         _cjsTranspile ? this.transpile_cjs() : noop(),
         _esmTranspile ? this.transpile_esm() : noop(),
         this.transpile_types(),
-        this.transpile_resources(),
+        this.copy_resources(),
       ])
     },
 
@@ -291,7 +289,7 @@ export function tasks(options: TasksOptions = {}) {
      * TEST, COVERAGE & LINTING                                               *
      * ====================================================================== */
 
-    /** Run test and emit coverage data */
+    /** Run tests */
     async test(): Promise<void> {
       emitBanner('Running tests')
 
@@ -302,16 +300,17 @@ export function tasks(options: TasksOptions = {}) {
           .jasmine({ coverageDir: _coverage ? this.coverageDataDir : undefined })
     },
 
-    /** Run tests (always) and generate a coverage report */
+    /** Ensure tests have run and generate a coverage report */
     async coverage(): Promise<Pipe> {
+      let coveragePipe: Pipe
+
       // Capture error from running tests, but always produce coverage
-      let files: Files
       try {
         await this.test()
       } finally {
         emitBanner('Preparing coverage report')
-        files = await this
-            ._find_sources()
+
+        coveragePipe = this._find_sources()
             .coverage(this.coverageDataDir, {
               reportDir: this.coverageDir,
               minimumCoverage: _minimumCoverage,
@@ -321,11 +320,11 @@ export function tasks(options: TasksOptions = {}) {
             })
       }
 
-      // No exceptions!
-      return files
+      // If the tests didn't throw, return the coverage
+      return coveragePipe
     },
 
-    /** Run test and emit coverage data */
+    /** Lint all sources */
     async lint(): Promise<void> {
       emitBanner('Linting sources')
 
