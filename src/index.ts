@@ -139,7 +139,7 @@ export function tasks(options: TasksOptions = {}) {
   } = options
 
   // coverage ignore next
-  const banner = _banners ? emitBanner : (...args: any) => void args
+  const emitBanner = _banners ? banner : (...args: any) => void args
 
   // Merge esbuild defaults with specified options
   const esbuildMergedOptions = Object.assign({}, esbuildDefaults, _esbuildOptions)
@@ -198,7 +198,7 @@ export function tasks(options: TasksOptions = {}) {
     },
 
     /** Find all types definition files within sources */
-    _find_extras(): Pipe {
+    _find_extra_types(): Pipe {
       if (! isDirectory(this.extraTypesDir)) return noop()
       return find('**/*.d.ts', { directory: this.extraTypesDir })
     },
@@ -212,6 +212,16 @@ export function tasks(options: TasksOptions = {}) {
     /** Find all test source files */
     _find_tests(): Pipe {
       return find(this.testGlob, { directory: this.testDir, ignore: '**/*.d.ts' })
+    },
+
+    /** Find all source files to lint */
+    _find_lint_sources(): Pipe {
+      return merge([
+        this._find_sources(),
+        this._find_tests(),
+        this._find_types(),
+        this._find_extra_types(),
+      ])
     },
 
     /* ====================================================================== *
@@ -245,7 +255,7 @@ export function tasks(options: TasksOptions = {}) {
       return merge([
         this._find_sources(),
         this._find_types(),
-        this._find_extras(),
+        this._find_extra_types(),
       ]).tsc('tsconfig.json', {
         noEmit: false,
         rootDir: this.sourceDir,
@@ -265,7 +275,7 @@ export function tasks(options: TasksOptions = {}) {
 
     /** Transpile all source code */
     async transpile(): Promise<Pipe> {
-      banner('Transpiling source files')
+      emitBanner('Transpiling source files')
 
       if (isDirectory(this.destDir)) await rmrf(this.destDir)
 
@@ -283,7 +293,7 @@ export function tasks(options: TasksOptions = {}) {
 
     /** Run test and emit coverage data */
     async test(): Promise<void> {
-      banner('Running tests')
+      emitBanner('Running tests')
 
       if (_coverage && isDirectory(this.coverageDataDir)) await rmrf(this.coverageDataDir)
 
@@ -299,7 +309,7 @@ export function tasks(options: TasksOptions = {}) {
       try {
         await this.test()
       } finally {
-        banner('Preparing coverage report')
+        emitBanner('Preparing coverage report')
         files = await this
             ._find_sources()
             .coverage(this.coverageDataDir, {
@@ -317,14 +327,9 @@ export function tasks(options: TasksOptions = {}) {
 
     /** Run test and emit coverage data */
     async lint(): Promise<void> {
-      banner('Linting sources')
+      emitBanner('Linting sources')
 
-      await merge([
-        this._find_sources(),
-        this._find_tests(),
-        this._find_types(),
-        this._find_extras(),
-      ]).eslint()
+      await this._find_lint_sources().eslint()
     },
 
     /* ====================================================================== *
@@ -335,7 +340,7 @@ export function tasks(options: TasksOptions = {}) {
     async exports(): Promise<Pipe> {
       const files = await this.transpile()
 
-      banner('Updating exports in "package.json"')
+      emitBanner('Updating exports in "package.json"')
 
       return merge([ files ])
           .filter(this.exportsGlob, { directory: this.destDir, ignore: '**/*.map' })
@@ -372,7 +377,7 @@ export function tasks(options: TasksOptions = {}) {
 
 /* coverage ignore next */
 /* Leave this at the _end_ of the file, unicode messes up sitemaps... */
-function emitBanner(message: string): void {
+export function banner(message: string): void {
   log.notice([
     '', $gry(`\u2554${''.padStart(60, '\u2550')}\u2557`),
     `${$gry('\u2551')} ${$wht(message.padEnd(58, ' '))} ${$gry('\u2551')}`,
