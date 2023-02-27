@@ -277,16 +277,18 @@ export function tasks(options: TasksOptions = {}) {
 
       if (isDirectory(this.destDir)) await rmrf(this.destDir)
 
-      return merge([
+      const result = await merge([
         _cjsTranspile ? this.transpile_cjs() : noop(),
         _esmTranspile ? this.transpile_esm() : noop(),
         this.transpile_types(),
         this.copy_resources(),
       ])
+
+      return result
     },
 
     /* ====================================================================== *
-     * TEST, COVERAGE & LINTING                                               *
+     * TEST & COVERAGE                                                        *
      * ====================================================================== */
 
     /** Run tests */
@@ -324,6 +326,10 @@ export function tasks(options: TasksOptions = {}) {
       return coveragePipe
     },
 
+    /* ====================================================================== *
+     * LINTING                                                                *
+     * ====================================================================== */
+
     /** Lint all sources */
     async lint(): Promise<void> {
       emitBanner('Linting sources')
@@ -352,12 +358,12 @@ export function tasks(options: TasksOptions = {}) {
     },
 
     /* ====================================================================== *
-     * DEFAULT: DO EVERYTHING                                                 *
+     * ALL: DO EVERYTHING                                                     *
      * ====================================================================== */
 
     /* coverage ignore next */
-    /** Build everything */
-    async default(): Promise<void> {
+    /** Build everything. */
+    async all(): Promise<void> {
       if (_parallelize) {
         await Promise.all([
           this.transpile(),
@@ -369,7 +375,21 @@ export function tasks(options: TasksOptions = {}) {
         await this.coverage() // implies "test"
         await this.lint()
       }
-      await this.exports()
+    },
+
+    /* ====================================================================== *
+     * DEFAULT: DO EVERYTHING                                                 *
+     * ====================================================================== */
+
+    /* coverage ignore next */
+    /**
+     * Default task (simply invokes `this._all()`).
+     *
+     * Override this and invoke `this._all()` to inject tasks _before_ or
+     * _after_ the normal build execution.
+     */
+    async default(): Promise<void> {
+      await this.all()
     },
   })
 }
