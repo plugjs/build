@@ -292,14 +292,43 @@ export function tasks(options: TasksOptions = {}) {
      * ====================================================================== */
 
     /** Run tests */
-    async test(): Promise<void> {
-      emitBanner('Running tests')
+    async test_cjs(): Promise<void> {
+      emitBanner('Running tests (CommonJS)')
 
+      const forceType = process.env.__TS_LOADER_FORCE_TYPE
+      try {
+        process.env.__TS_LOADER_FORCE_TYPE = 'commonjs'
+        await this
+            ._find_tests()
+            .jasmine({ coverageDir: _coverage ? this.coverageDataDir : undefined })
+      } finally {
+        delete process.env.__TS_LOADER_FORCE_TYPE
+        if (forceType) process.env.__TS_LOADER_FORCE_TYPE = forceType
+      }
+    },
+
+    /** Run tests */
+    async test_esm(): Promise<void> {
+      emitBanner('Running tests (ES Modules)')
+
+      const forceType = process.env.__TS_LOADER_FORCE_TYPE
+      try {
+        process.env.__TS_LOADER_FORCE_TYPE = 'module'
+        await this
+            ._find_tests()
+            .jasmine({ coverageDir: _coverage ? this.coverageDataDir : undefined })
+      } finally {
+        delete process.env.__TS_LOADER_FORCE_TYPE
+        if (forceType) process.env.__TS_LOADER_FORCE_TYPE = forceType
+      }
+    },
+
+    /** Run tests */
+    async test(): Promise<void> {
       if (_coverage && isDirectory(this.coverageDataDir)) await rmrf(this.coverageDataDir)
 
-      await this
-          ._find_tests()
-          .jasmine({ coverageDir: _coverage ? this.coverageDataDir : undefined })
+      await this.test_cjs()
+      await this.test_esm()
     },
 
     /** Ensure tests have run and generate a coverage report */
