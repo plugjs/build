@@ -29,12 +29,12 @@
     "transpile": "plug transpile"
   },
   "dependencies": {
-    "@plugjs/cov8": "^0.2.1",
-    "@plugjs/eslint": "^0.2.1",
+    "@plugjs/cov8": "^0.2.2",
+    "@plugjs/eslint": "^0.2.2",
     "@plugjs/eslint-plugin": "^0.1.2",
-    "@plugjs/jasmine": "^0.2.1",
-    "@plugjs/plug": "^0.2.1",
-    "@plugjs/typescript": "^0.2.1"
+    "@plugjs/jasmine": "^0.2.2",
+    "@plugjs/plug": "^0.2.2",
+    "@plugjs/typescript": "^0.2.2"
   },
   "files": [
     "*.md",
