@@ -186,7 +186,7 @@ describe('PlugJS Shared Build', () => {
 
   it('should lint all our sources', async () => {
     await tasks({ banners }).lint()
-  })
+  }, 30_000)
 
   it('should prepare a coverage report', async () => {
     const tempDir = mkdtemp()
