@@ -1,3 +1,5 @@
-import { tasks } from './src/index'
+import { tasks, logging } from './src/index'
+
+logging.logOptions.githubAnnotations = false
 
 export default tasks()
