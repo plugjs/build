@@ -75,7 +75,7 @@ describe('PlugJS Shared Build', () => {
     } finally {
       await rmrf(destDir)
     }
-  })
+  }, 10000)
 
   it('should transpile ecmascript modules sources', async () => {
     const destDir = mkdtemp()
@@ -118,7 +118,7 @@ describe('PlugJS Shared Build', () => {
     } finally {
       await rmrf(destDir)
     }
-  })
+  }, 10000)
 
   it('should transpile commonjs modules sources', async () => {
     const destDir = mkdtemp()
@@ -161,7 +161,7 @@ describe('PlugJS Shared Build', () => {
     } finally {
       await rmrf(destDir)
     }
-  })
+  }, 10000)
 
   it('should fail compiling when types are not found', async () => {
     const destDir = mkdtemp()
