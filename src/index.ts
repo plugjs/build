@@ -396,12 +396,12 @@ export function tasks(options: TasksOptions = {}) {
       if (_parallelize) {
         await Promise.all([
           this.transpile(),
-          this.coverage(), // implies "test"
+          _coverage ? this.coverage() : this.test(),
           this.lint(),
         ])
       } else {
         await this.transpile()
-        await this.coverage() // implies "test"
+        await (_coverage ? this.coverage() : this.test()),
         await this.lint()
       }
     },
