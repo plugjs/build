@@ -80,7 +80,7 @@ describe('PlugJS Shared Build', () => {
     log('Transpiling to', $p(destDir))
 
     try {
-      const build = tasks({ destDir, cjsTranspile: false, banners })
+      const build = tasks({ destDir, cjs: false, banners })
       const transpiled = await build.transpile()
       const found = await find('**/*.*', { directory: destDir })
 
@@ -121,7 +121,7 @@ describe('PlugJS Shared Build', () => {
     log('Transpiling to', $p(destDir))
 
     try {
-      const build = tasks({ destDir, esmTranspile: false, banners })
+      const build = tasks({ destDir, esm: false, banners })
       const transpiled = await build.transpile()
       const found = await find('**/*.*', { directory: destDir })
 
@@ -180,6 +180,10 @@ describe('PlugJS Shared Build', () => {
 
   it('should lint all our sources', async () => {
     await tasks({ banners }).lint()
+  }, 30_000)
+
+  it('should check the types of our tests', async () => {
+    await tasks({ banners }).test_types()
   }, 30_000)
 
   it('should prepare a coverage report', async () => {
@@ -311,7 +315,7 @@ describe('PlugJS Shared Build', () => {
 
     try {
       const outputPackageJson = resolve(destDir, 'package.json')
-      const files = await tasks({ esmTranspile: false, banners }).exports({ destDir, outputPackageJson, exportsGlob: '**/*.*' })
+      const files = await tasks({ esm: false, banners }).exports({ destDir, outputPackageJson, exportsGlob: '**/*.*' })
 
       expect([ ...files.absolutePaths() ]).toEqual([ outputPackageJson ])
 
@@ -352,7 +356,7 @@ describe('PlugJS Shared Build', () => {
 
     try {
       const outputPackageJson = resolve(destDir, 'package.json')
-      const files = await tasks({ cjsTranspile: false, banners }).exports({ destDir, outputPackageJson, exportsGlob: '**/*.*' })
+      const files = await tasks({ cjs: false, banners }).exports({ destDir, outputPackageJson, exportsGlob: '**/*.*' })
 
       expect([ ...files.absolutePaths() ]).toEqual([ outputPackageJson ])
 
