@@ -255,6 +255,11 @@ export function tasks(options: TasksOptions = {}) {
 
     /** Generate all .d.ts files */
     transpile_types(): Pipe {
+      const extraTypesDir =
+          isDirectory(this.extraTypesDir) ?
+              this.extraTypesDir :
+              undefined
+
       return merge([
         this._find_sources(),
         this._find_types(),
@@ -264,7 +269,7 @@ export function tasks(options: TasksOptions = {}) {
         declaration: true,
         emitDeclarationOnly: true,
         outDir: this.destDir,
-        extraTypesDir: this.extraTypesDir,
+        extraTypesDir,
       })
     },
 
@@ -301,6 +306,11 @@ export function tasks(options: TasksOptions = {}) {
       emitBanner('Checking test types')
 
       const tsconfig = resolve(this.testDir, 'tsconfig.json')
+      const extraTypesDir =
+          isDirectory(this.extraTypesDir) ?
+              this.extraTypesDir :
+              undefined
+
       await this
           ._find_tests()
           .tsc(tsconfig, {
@@ -308,7 +318,7 @@ export function tasks(options: TasksOptions = {}) {
             noEmit: true,
             declaration: false,
             emitDeclarationOnly: false,
-            extraTypesDir: this.extraTypesDir,
+            extraTypesDir,
           })
     },
 
@@ -316,32 +326,24 @@ export function tasks(options: TasksOptions = {}) {
     async test_cjs(): Promise<void> {
       emitBanner('Running tests (CommonJS)')
 
-      const forceType = process.env.__TS_LOADER_FORCE_TYPE
-      try {
-        process.env.__TS_LOADER_FORCE_TYPE = 'commonjs'
-        await this
-            ._find_tests()
-            .test({ coverageDir: _coverage ? this.coverageDataDir : undefined })
-      } finally {
-        delete process.env.__TS_LOADER_FORCE_TYPE
-        if (forceType) process.env.__TS_LOADER_FORCE_TYPE = forceType
-      }
+      await this
+          ._find_tests()
+          .test({
+            coverageDir: _coverage ? this.coverageDataDir : undefined,
+            forceModule: 'commonjs',
+          })
     },
 
     /** Run tests */
     async test_esm(): Promise<void> {
       emitBanner('Running tests (ES Modules)')
 
-      const forceType = process.env.__TS_LOADER_FORCE_TYPE
-      try {
-        process.env.__TS_LOADER_FORCE_TYPE = 'module'
-        await this
-            ._find_tests()
-            .test({ coverageDir: _coverage ? this.coverageDataDir : undefined })
-      } finally {
-        delete process.env.__TS_LOADER_FORCE_TYPE
-        if (forceType) process.env.__TS_LOADER_FORCE_TYPE = forceType
-      }
+      await this
+          ._find_tests()
+          .test({
+            coverageDir: _coverage ? this.coverageDataDir : undefined,
+            forceModule: 'module',
+          })
     },
 
     /** Run tests */
