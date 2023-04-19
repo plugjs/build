@@ -1,6 +1,6 @@
 import { join } from 'node:path'
 
-import { $p, BuildFailure, find, log, mkdtemp, resolve, rmrf } from '@plugjs/plug'
+import { $p, $wht, BuildFailure, find, log, mkdtemp, resolve, rmrf } from '@plugjs/plug'
 import { readFile } from '@plugjs/plug/fs'
 
 import { tasks } from '../src/index'
@@ -15,6 +15,10 @@ describe('PlugJS Shared Build', () => {
 
   afterAll(() => {
     process.chdir(cwd)
+  })
+
+  it('should run in the correct mode', () => {
+    log.warn('Running in', $wht(__fileurl.startsWith('file:/') ? 'ESM' : 'CJS'), 'mode')
   })
 
   it('should export a function', () => {
@@ -179,11 +183,22 @@ describe('PlugJS Shared Build', () => {
   })
 
   it('should lint all our sources', async () => {
-    await tasks({ banners }).lint()
+    await tasks({ banners, extraTypesDir: 'no-types' }).lint()
+  }, 30_000)
+
+  it('should fail when lint checking fails', async () => {
+    // the "extra.d.ts" file in the "types" directory has a linting error!
+    await expect(tasks({ banners }).lint())
+        .toBeRejectedWithError(BuildFailure, '')
   }, 30_000)
 
   it('should check the types of our tests', async () => {
     await tasks({ banners }).test_types()
+  }, 30_000)
+
+  it('should fail when test type cheking fails', async () => {
+    await expect(tasks({ banners, extraTypesDir: 'no-types' }).test_types())
+        .toBeRejectedWithError(BuildFailure, '')
   }, 30_000)
 
   it('should prepare a coverage report', async () => {
