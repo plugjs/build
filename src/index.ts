@@ -2,13 +2,14 @@ import '@plugjs/cov8'
 import '@plugjs/eslint'
 import '@plugjs/expect5'
 import {
-  $gry,
-  $wht,
+  banner,
   build,
   find,
   fixExtensions,
-  isDirectory, log, merge,
+  isDirectory,
+  merge,
   noop,
+  resolve,
   rmrf,
 } from '@plugjs/plug'
 import '@plugjs/typescript'
@@ -61,10 +62,10 @@ export interface TasksOptions {
   cjsExtension?: string,
   /** The extension used for EcmaScript modules (default: `.mjs`) */
   esmExtension?: string,
-  /** Enable CommonJS Modules transpilation or not (default: `true`) */
-  cjsTranspile?: boolean,
-  /** Enable EcmaScript Modules transpilation or not (default: `true`) */
-  esmTranspile?: boolean,
+  /** Enable CommonJS Modules or not (default: `true`) */
+  cjs?: boolean,
+  /** Enable EcmaScript Modules or not (default: `true`) */
+  esm?: boolean,
 
   /* ======================================================================== *
    * OTHER OPTIONS                                                            *
@@ -121,8 +122,8 @@ export function tasks(options: TasksOptions = {}) {
 
     cjsExtension: _cjsExtension = '.cjs',
     esmExtension: _esmExtension = '.mjs',
-    cjsTranspile: _cjsTranspile = true,
-    esmTranspile: _esmTranspile = true,
+    cjs: _cjs = true,
+    esm: _esm = true,
 
     parallelize: _parallelize = false,
     banners: _banners = !_parallelize,
@@ -164,6 +165,10 @@ export function tasks(options: TasksOptions = {}) {
     cjsExtension: _cjsExtension,
     /** The extension used for EcmaScript modules (default: `.mjs`) */
     esmExtension: _esmExtension,
+    /** The extension used for CommonJS modules (default: `.cjs`) */
+    cjs: _cjs ? 'true' : 'false',
+    /** The extension used for EcmaScript modules (default: `.mjs`) */
+    esm: _esm ? 'true' : 'false',
     /** A glob pattern matching all test files (default: `**∕*.test.([cm])?ts`) */
     testGlob: _testGlob,
     /** A glob pattern matching files to be exported (default: `index.*`) */
@@ -186,20 +191,20 @@ export function tasks(options: TasksOptions = {}) {
     /** Find all typescript source files (`*.ts`, `*.mts` and `*.cts`) */
     _find_sources(): Pipe {
       return merge([
-        _cjsTranspile ? this._find_sources_cts() : noop(),
-        _esmTranspile ? this._find_sources_mts() : noop(),
+        this.cjs === 'true' ? this._find_sources_cts() : noop(),
+        this.esm === 'true' ? this._find_sources_mts() : noop(),
       ])
     },
 
     /** Find all types definition files within sources */
     _find_types(): Pipe {
-      return find('**/*.d.ts', { directory: this.sourceDir })
+      return find('**/*.d.([cm])?ts', { directory: this.sourceDir })
     },
 
     /** Find all extra types definition files from `extraTypesDir` */
     _find_extra_types(): Pipe {
       if (! isDirectory(this.extraTypesDir)) return noop()
-      return find('**/*.d.ts', { directory: this.extraTypesDir })
+      return find('**/*.d.([cm])?ts', { directory: this.extraTypesDir })
     },
 
     /** Find all resource files (non-typescript files) within sources */
@@ -209,7 +214,7 @@ export function tasks(options: TasksOptions = {}) {
 
     /** Find all test source files */
     _find_tests(): Pipe {
-      return find(this.testGlob, { directory: this.testDir, ignore: '**/*.d.ts' })
+      return find(this.testGlob, { directory: this.testDir, ignore: '**/*.d.([cm])?ts' })
     },
 
     /** Find all source files to lint */
@@ -253,13 +258,13 @@ export function tasks(options: TasksOptions = {}) {
       return merge([
         this._find_sources(),
         this._find_types(),
-        this._find_extra_types(),
       ]).tsc('tsconfig.json', {
         noEmit: false,
         rootDir: this.sourceDir,
         declaration: true,
         emitDeclarationOnly: true,
         outDir: this.destDir,
+        extraTypesDir: this.extraTypesDir,
       })
     },
 
@@ -278,8 +283,8 @@ export function tasks(options: TasksOptions = {}) {
       if (isDirectory(this.destDir)) await rmrf(this.destDir)
 
       const result = await merge([
-        _cjsTranspile ? this.transpile_cjs() : noop(),
-        _esmTranspile ? this.transpile_esm() : noop(),
+        this.cjs === 'true' ? this.transpile_cjs() : noop(),
+        this.esm === 'true' ? this.transpile_esm() : noop(),
         this.transpile_types(),
         this.copy_resources(),
       ])
@@ -290,6 +295,22 @@ export function tasks(options: TasksOptions = {}) {
     /* ====================================================================== *
      * TEST & COVERAGE                                                        *
      * ====================================================================== */
+
+    /** Check test types */
+    async test_types(): Promise<void> {
+      emitBanner('Checking test types')
+
+      const tsconfig = resolve(this.testDir, 'tsconfig.json')
+      await this
+          ._find_tests()
+          .tsc(tsconfig, {
+            rootDir: '.',
+            noEmit: true,
+            declaration: false,
+            emitDeclarationOnly: false,
+            extraTypesDir: this.extraTypesDir,
+          })
+    },
 
     /** Run tests */
     async test_cjs(): Promise<void> {
@@ -327,8 +348,8 @@ export function tasks(options: TasksOptions = {}) {
     async test(): Promise<void> {
       if (_coverage && isDirectory(this.coverageDataDir)) await rmrf(this.coverageDataDir)
 
-      await this.test_cjs()
-      await this.test_esm()
+      if (this.cjs === 'true') await this.test_cjs()
+      if (this.esm === 'true') await this.test_esm()
     },
 
     /** Ensure tests have run and generate a coverage report */
@@ -396,6 +417,7 @@ export function tasks(options: TasksOptions = {}) {
       if (_parallelize) {
         await Promise.all([
           this.transpile(),
+          this.test_types(),
           _coverage ? this.coverage() : this.test(),
           this.lint(),
         ])
@@ -421,14 +443,4 @@ export function tasks(options: TasksOptions = {}) {
       await this.all()
     },
   })
-}
-
-/* coverage ignore next */
-/* Leave this at the _end_ of the file, unicode messes up sitemaps... */
-export function banner(message: string): void {
-  log.notice([
-    '', $gry(`\u2554${''.padStart(60, '\u2550')}\u2557`),
-    `${$gry('\u2551')} ${$wht(message.padEnd(58, ' '))} ${$gry('\u2551')}`,
-    $gry(`\u255A${''.padStart(60, '\u2550')}\u255D`), '',
-  ].join('\n'))
 }
