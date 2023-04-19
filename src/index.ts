@@ -1,6 +1,6 @@
 import '@plugjs/cov8'
 import '@plugjs/eslint'
-import '@plugjs/jasmine'
+import '@plugjs/expect5'
 import {
   $gry,
   $wht,
@@ -300,7 +300,7 @@ export function tasks(options: TasksOptions = {}) {
         process.env.__TS_LOADER_FORCE_TYPE = 'commonjs'
         await this
             ._find_tests()
-            .jasmine({ coverageDir: _coverage ? this.coverageDataDir : undefined })
+            .test({ coverageDir: _coverage ? this.coverageDataDir : undefined })
       } finally {
         delete process.env.__TS_LOADER_FORCE_TYPE
         if (forceType) process.env.__TS_LOADER_FORCE_TYPE = forceType
@@ -316,7 +316,7 @@ export function tasks(options: TasksOptions = {}) {
         process.env.__TS_LOADER_FORCE_TYPE = 'module'
         await this
             ._find_tests()
-            .jasmine({ coverageDir: _coverage ? this.coverageDataDir : undefined })
+            .test({ coverageDir: _coverage ? this.coverageDataDir : undefined })
       } finally {
         delete process.env.__TS_LOADER_FORCE_TYPE
         if (forceType) process.env.__TS_LOADER_FORCE_TYPE = forceType
