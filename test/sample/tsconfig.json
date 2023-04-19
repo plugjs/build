@@ -1,10 +1,10 @@
 {
   "compilerOptions": {
-    "lib": [ "es2022" ],
-    "target": "es2022",
-    "module": "es2022",
-    "moduleResolution": "node16",
-    "types": [ "node" ],
+    "lib": [ "esnext" ],
+    "target": "esnext",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "types": [ ],
     "esModuleInterop": true,
 
     "noEmit": true,
@@ -13,10 +13,12 @@
     "noImplicitReturns": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
+    "noUncheckedIndexedAccess": true,
+    "verbatimModuleSyntax": true,
   },
   "include": [
+    "./build.ts",
     "./src",
     "./types",
-    "./build.ts",
   ],
 }
