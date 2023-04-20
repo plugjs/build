@@ -1,6 +1,6 @@
 import { join } from 'node:path'
 
-import { $p, $wht, BuildFailure, find, log, mkdtemp, resolve, rmrf } from '@plugjs/plug'
+import { $p, $wht, BuildFailure, find, log, mkdtemp, resolve, rmrf, build } from '@plugjs/plug'
 import { readFile } from '@plugjs/plug/fs'
 
 import { tasks } from '../src/index'
@@ -180,6 +180,38 @@ describe('PlugJS Shared Build', () => {
   it('should fail when tests fail', async () => {
     await expect(tasks({ coverage: false, testGlob: '**/*.(test|fail).([cm])?ts', banners }).test())
         .toBeRejectedWithError(BuildFailure, '')
+  })
+
+  it('should only run ESM tests', async () => {
+    await build({
+      ...tasks({ coverage: false, banners: true }),
+      test_esm(): void {
+        throw new Error('ESM tests should not run')
+      },
+    }).test({ esm: 'not true' })
+
+    await build({
+      ...tasks({ coverage: false, banners: true, esm: false }),
+      test_esm(): void {
+        throw new Error('ESM tests should not run')
+      },
+    })
+  })
+
+  it('should only run CJS tests', async () => {
+    await build({
+      ...tasks({ coverage: false, banners: true }),
+      test_cjs(): void {
+        throw new Error('CJS tests should not run')
+      },
+    }).test({ cjs: 'not true' })
+
+    await build({
+      ...tasks({ coverage: false, banners: true, cjs: false }),
+      test_cjs(): void {
+        throw new Error('CJS tests should not run')
+      },
+    })
   })
 
   it('should lint all our sources', async () => {
