@@ -1,6 +1,6 @@
 import { join } from 'node:path'
 
-import { $p, BuildFailure, find, log, mkdtemp, resolve, rmrf } from '@plugjs/plug'
+import { $p, $wht, BuildFailure, find, log, mkdtemp, resolve, rmrf, build } from '@plugjs/plug'
 import { readFile } from '@plugjs/plug/fs'
 
 import { tasks } from '../src/index'
@@ -17,6 +17,10 @@ describe('PlugJS Shared Build', () => {
     process.chdir(cwd)
   })
 
+  it('should run in the correct mode', () => {
+    log.warn('Running in', $wht(__fileurl.startsWith('file:/') ? 'ESM' : 'CJS'), 'mode')
+  })
+
   it('should export a function', () => {
     expect(tasks).toBeInstanceOf(Function)
   })
@@ -30,48 +34,46 @@ describe('PlugJS Shared Build', () => {
       const transpiled = await build.transpile({ destDir })
       const found = await find('**/*.*', { directory: destDir })
 
-      expect(transpiled.directory).toBe(destDir)
+      expect(transpiled.directory).toStrictlyEqual(destDir)
 
-      expect([ ...transpiled ])
-          .toEqual(jasmine.arrayWithExactContents([ ...found ]))
-      expect([ ...transpiled ])
-          .toEqual(jasmine.arrayWithExactContents([
-            // plain cjs
-            'my_cts.cjs',
-            'my_cts.cjs.map',
-            'my_cts.d.cts',
-            // plain mjs
-            'my_mts.mjs',
-            'my_mts.mjs.map',
-            'my_mts.d.mts',
-            // ts transpiled to both cjs and mjs
-            'my_ts.cjs',
-            'my_ts.cjs.map',
-            'my_ts.mjs',
-            'my_ts.mjs.map',
-            'my_ts.d.ts',
-            // dts resource (copied)
-            'my_dts.d.ts',
-            // ts with dual source for cjs and mjs
-            'my_xts.cjs',
-            'my_xts.cjs.map',
-            'my_xts.d.cts',
-            'my_xts.mjs',
-            'my_xts.mjs.map',
-            'my_xts.d.mts',
-            // index file
-            'index.cjs',
-            'index.cjs.map',
-            'index.d.ts',
-            'index.mjs',
-            'index.mjs.map',
-            // index file in subpath
-            'my_subpath/index.cjs',
-            'my_subpath/index.cjs.map',
-            'my_subpath/index.d.ts',
-            'my_subpath/index.mjs',
-            'my_subpath/index.mjs.map',
-          ]))
+      expect([ ...transpiled ]).toEqual([ ...found ])
+      expect([ ...transpiled ]).toMatchContents([
+        // plain cjs
+        'my_cts.cjs',
+        'my_cts.cjs.map',
+        'my_cts.d.cts',
+        // plain mjs
+        'my_mts.mjs',
+        'my_mts.mjs.map',
+        'my_mts.d.mts',
+        // ts transpiled to both cjs and mjs
+        'my_ts.cjs',
+        'my_ts.cjs.map',
+        'my_ts.mjs',
+        'my_ts.mjs.map',
+        'my_ts.d.ts',
+        // dts resource (copied)
+        'my_dts.d.ts',
+        // ts with dual source for cjs and mjs
+        'my_xts.cjs',
+        'my_xts.cjs.map',
+        'my_xts.d.cts',
+        'my_xts.mjs',
+        'my_xts.mjs.map',
+        'my_xts.d.mts',
+        // index file
+        'index.cjs',
+        'index.cjs.map',
+        'index.d.ts',
+        'index.mjs',
+        'index.mjs.map',
+        // index file in subpath
+        'my_subpath/index.cjs',
+        'my_subpath/index.cjs.map',
+        'my_subpath/index.d.ts',
+        'my_subpath/index.mjs',
+        'my_subpath/index.mjs.map',
+      ])
     } finally {
       await rmrf(destDir)
     }
@@ -82,39 +84,37 @@ describe('PlugJS Shared Build', () => {
     log('Transpiling to', $p(destDir))
 
     try {
-      const build = tasks({ destDir, cjsTranspile: false, banners })
+      const build = tasks({ destDir, cjs: false, banners })
       const transpiled = await build.transpile()
       const found = await find('**/*.*', { directory: destDir })
 
-      expect(transpiled.directory).toBe(destDir)
+      expect(transpiled.directory).toStrictlyEqual(destDir)
 
-      expect([ ...transpiled ])
-          .toEqual(jasmine.arrayWithExactContents([ ...found ]))
-      expect([ ...transpiled ])
-          .toEqual(jasmine.arrayWithExactContents([
-            // plain mjs
-            'my_mts.mjs',
-            'my_mts.mjs.map',
-            'my_mts.d.mts',
-            // ts transpiled to mjs only
-            'my_ts.mjs',
-            'my_ts.mjs.map',
-            'my_ts.d.ts',
-            // dts resource (copied)
-            'my_dts.d.ts',
-            // ts with dual source for cjs and mjs
-            'my_xts.mjs',
-            'my_xts.mjs.map',
-            'my_xts.d.mts',
-            // index file
-            'index.d.ts',
-            'index.mjs',
-            'index.mjs.map',
-            // index file in subpath
-            'my_subpath/index.d.ts',
-            'my_subpath/index.mjs',
-            'my_subpath/index.mjs.map',
-          ]))
+      expect([ ...transpiled ]).toEqual([ ...found ])
+      expect([ ...transpiled ]).toMatchContents([
+        // plain mjs
+        'my_mts.mjs',
+        'my_mts.mjs.map',
+        'my_mts.d.mts',
+        // ts transpiled to mjs only
+        'my_ts.mjs',
+        'my_ts.mjs.map',
+        'my_ts.d.ts',
+        // dts resource (copied)
+        'my_dts.d.ts',
+        // ts with dual source for cjs and mjs
+        'my_xts.mjs',
+        'my_xts.mjs.map',
+        'my_xts.d.mts',
+        // index file
+        'index.d.ts',
+        'index.mjs',
+        'index.mjs.map',
+        // index file in subpath
+        'my_subpath/index.d.ts',
+        'my_subpath/index.mjs',
+        'my_subpath/index.mjs.map',
+      ])
     } finally {
       await rmrf(destDir)
     }
@@ -125,39 +125,37 @@ describe('PlugJS Shared Build', () => {
     log('Transpiling to', $p(destDir))
 
     try {
-      const build = tasks({ destDir, esmTranspile: false, banners })
+      const build = tasks({ destDir, esm: false, banners })
       const transpiled = await build.transpile()
       const found = await find('**/*.*', { directory: destDir })
 
-      expect(transpiled.directory).toBe(destDir)
+      expect(transpiled.directory).toStrictlyEqual(destDir)
 
-      expect([ ...transpiled ])
-          .toEqual(jasmine.arrayWithExactContents([ ...found ]))
-      expect([ ...transpiled ])
-          .toEqual(jasmine.arrayWithExactContents([
-            // plain cjs
-            'my_cts.cjs',
-            'my_cts.cjs.map',
-            'my_cts.d.cts',
-            // ts transpiled cjs only
-            'my_ts.cjs',
-            'my_ts.cjs.map',
-            'my_ts.d.ts',
-            // dts resource (copied)
-            'my_dts.d.ts',
-            // ts with dual source for cjs and mjs
-            'my_xts.cjs',
-            'my_xts.cjs.map',
-            'my_xts.d.cts',
-            // index file
-            'index.cjs',
-            'index.cjs.map',
-            'index.d.ts',
-            // index file in subpath
-            'my_subpath/index.cjs',
-            'my_subpath/index.cjs.map',
-            'my_subpath/index.d.ts',
-          ]))
+      expect([ ...transpiled ]).toEqual([ ...found ])
+      expect([ ...transpiled ]).toMatchContents([
+        // plain cjs
+        'my_cts.cjs',
+        'my_cts.cjs.map',
+        'my_cts.d.cts',
+        // ts transpiled cjs only
+        'my_ts.cjs',
+        'my_ts.cjs.map',
+        'my_ts.d.ts',
+        // dts resource (copied)
+        'my_dts.d.ts',
+        // ts with dual source for cjs and mjs
+        'my_xts.cjs',
+        'my_xts.cjs.map',
+        'my_xts.d.cts',
+        // index file
+        'index.cjs',
+        'index.cjs.map',
+        'index.d.ts',
+        // index file in subpath
+        'my_subpath/index.cjs',
+        'my_subpath/index.cjs.map',
+        'my_subpath/index.d.ts',
+      ])
     } finally {
       await rmrf(destDir)
     }
@@ -168,7 +166,7 @@ describe('PlugJS Shared Build', () => {
     log('Transpiling to', $p(destDir))
 
     try {
-      await expectAsync(tasks({ destDir, extraTypesDir: 'no-types', banners }).transpile())
+      await expect(tasks({ destDir, extraTypesDir: 'no-types', banners }).transpile())
           .toBeRejectedWithError(BuildFailure, '')
     } finally {
       await rmrf(destDir)
@@ -180,12 +178,59 @@ describe('PlugJS Shared Build', () => {
   })
 
   it('should fail when tests fail', async () => {
-    await expectAsync(tasks({ coverage: false, testGlob: '**/*.(test|fail).([cm])?ts', banners }).test())
+    await expect(tasks({ coverage: false, testGlob: '**/*.(test|fail).([cm])?ts', banners }).test())
         .toBeRejectedWithError(BuildFailure, '')
   })
 
+  it('should only run ESM tests', async () => {
+    await build({
+      ...tasks({ coverage: false, banners: true }),
+      test_esm(): void {
+        throw new Error('ESM tests should not run')
+      },
+    }).test({ esm: 'not true' })
+
+    await build({
+      ...tasks({ coverage: false, banners: true, esm: false }),
+      test_esm(): void {
+        throw new Error('ESM tests should not run')
+      },
+    })
+  })
+
+  it('should only run CJS tests', async () => {
+    await build({
+      ...tasks({ coverage: false, banners: true }),
+      test_cjs(): void {
+        throw new Error('CJS tests should not run')
+      },
+    }).test({ cjs: 'not true' })
+
+    await build({
+      ...tasks({ coverage: false, banners: true, cjs: false }),
+      test_cjs(): void {
+        throw new Error('CJS tests should not run')
+      },
+    })
+  })
+
   it('should lint all our sources', async () => {
-    await tasks({ banners }).lint()
+    await tasks({ banners, extraTypesDir: 'no-types' }).lint()
+  }, 30_000)
+
+  it('should fail when lint checking fails', async () => {
+    // the "extra.d.ts" file in the "types" directory has a linting error!
+    await expect(tasks({ banners }).lint())
+        .toBeRejectedWithError(BuildFailure, '')
+  }, 30_000)
+
+  it('should check the types of our tests', async () => {
+    await tasks({ banners }).test_types()
+  }, 30_000)
+
+  it('should fail when test type cheking fails', async () => {
+    await expect(tasks({ banners, extraTypesDir: 'no-types' }).test_types())
+        .toBeRejectedWithError(BuildFailure, '')
   }, 30_000)
 
   it('should prepare a coverage report', async () => {
@@ -200,9 +245,9 @@ describe('PlugJS Shared Build', () => {
 
       const found = await find('**/*.*', { directory: tempDir })
 
-      expect(coverage.directory).toBe(tempDir)
+      expect(coverage.directory).toStrictlyEqual(tempDir)
       expect([ ...coverage ]).toEqual([ 'index.html', 'report.js', 'report.json' ])
-      expect([ ...found ]).toEqual(jasmine.arrayContaining([ ...coverage ]))
+      expect([ ...found ]).toInclude([ ...coverage ])
     } finally {
       await rmrf(tempDir)
     }
@@ -213,7 +258,7 @@ describe('PlugJS Shared Build', () => {
     log('Coverage directory', $p(tempDir))
 
     try {
-      await expectAsync(tasks({
+      await expect(tasks({
         minimumCoverage: 0,
         optimalCoverage: 0,
         minimumFileCoverage: 0,
@@ -226,7 +271,7 @@ describe('PlugJS Shared Build', () => {
       })).toBeRejectedWithError(BuildFailure, '')
 
       expect([ ...await find('**/*.*', { directory: tempDir }) ])
-          .toEqual(jasmine.arrayContaining([ 'index.html', 'report.js', 'report.json' ]))
+          .toInclude([ 'index.html', 'report.js', 'report.json' ])
     } finally {
       await rmrf(tempDir)
     }
@@ -317,7 +362,7 @@ describe('PlugJS Shared Build', () => {
 
     try {
       const outputPackageJson = resolve(destDir, 'package.json')
-      const files = await tasks({ esmTranspile: false, banners }).exports({ destDir, outputPackageJson, exportsGlob: '**/*.*' })
+      const files = await tasks({ esm: false, banners }).exports({ destDir, outputPackageJson, exportsGlob: '**/*.*' })
 
       expect([ ...files.absolutePaths() ]).toEqual([ outputPackageJson ])
 
@@ -358,7 +403,7 @@ describe('PlugJS Shared Build', () => {
 
     try {
       const outputPackageJson = resolve(destDir, 'package.json')
-      const files = await tasks({ cjsTranspile: false, banners }).exports({ destDir, outputPackageJson, exportsGlob: '**/*.*' })
+      const files = await tasks({ cjs: false, banners }).exports({ destDir, outputPackageJson, exportsGlob: '**/*.*' })
 
       expect([ ...files.absolutePaths() ]).toEqual([ outputPackageJson ])
 
