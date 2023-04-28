@@ -184,14 +184,14 @@ describe('PlugJS Shared Build', () => {
 
   it('should only run ESM tests', async () => {
     await build({
-      ...tasks({ coverage: false, banners: true }),
+      ...tasks({ coverage: false, banners }),
       test_esm(): void {
         throw new Error('ESM tests should not run')
       },
     }).test({ esm: 'not true' })
 
     await build({
-      ...tasks({ coverage: false, banners: true, esm: false }),
+      ...tasks({ coverage: false, banners, esm: false }),
       test_esm(): void {
         throw new Error('ESM tests should not run')
       },
@@ -200,14 +200,14 @@ describe('PlugJS Shared Build', () => {
 
   it('should only run CJS tests', async () => {
     await build({
-      ...tasks({ coverage: false, banners: true }),
+      ...tasks({ coverage: false, banners }),
       test_cjs(): void {
         throw new Error('CJS tests should not run')
       },
     }).test({ cjs: 'not true' })
 
     await build({
-      ...tasks({ coverage: false, banners: true, cjs: false }),
+      ...tasks({ coverage: false, banners, cjs: false }),
       test_cjs(): void {
         throw new Error('CJS tests should not run')
       },
