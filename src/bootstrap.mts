@@ -4,6 +4,13 @@
 import { build, find, fs, isFile, log, resolve } from '@plugjs/plug'
 import { $p } from '@plugjs/plug/logging'
 
+function sortByKey<T extends Record<string, any>>(unsorted: T): T {
+  return Object.keys(unsorted).sort().reduce((obj, key: keyof T) => {
+    obj[key] = unsorted[key]
+    return obj
+  }, {} as T)
+}
+
 const tasks = build({
   /** Copy all resources from the `resources/` directory into the target */
   async bootstrap_resources(): Promise<void> {
@@ -40,7 +47,7 @@ const tasks = build({
     log(`Updating ${$p(targetPackage)}`)
 
     // Default scripts
-    targetJson.scripts = {
+    targetJson.scripts = sortByKey({
       build: 'plug',
       coverage: 'plug coverage',
       dev: 'plug coverage -w src -w test',
@@ -48,17 +55,17 @@ const tasks = build({
       test: 'plug test',
       transpile: 'plug transpile',
       ...targetJson.scripts,
-    }
+    })
 
     // Exported/packaged files
     const targetFiles = new Set([ ...(targetJson.files || []), '*.md', 'dist/', 'src/' ])
     targetJson.files = [ ...targetFiles ].sort()
 
     // *DEV* dependency on this build
-    targetJson.devDependencies = {
+    targetJson.devDependencies = sortByKey({
       ...targetJson.devDependencies,
       [buildJson.name]: `^${buildJson.version}`,
-    }
+    })
 
     // Overwrite taget package.json file
     log(`Writing ${$p(targetPackage)}`)
