@@ -227,6 +227,11 @@ export function tasks(options: TasksOptions = {}) {
       ])
     },
 
+    /** Find all source files for coverage */
+    _find_coverage_sources(): Pipe {
+      return this._find_sources()
+    },
+
     /* ====================================================================== *
      * TRANSPILE                                                              *
      * ====================================================================== */
@@ -364,7 +369,7 @@ export function tasks(options: TasksOptions = {}) {
       } finally {
         emitBanner('Preparing coverage report')
 
-        coveragePipe = this._find_sources()
+        coveragePipe = this._find_coverage_sources()
             .coverage(this.coverageDataDir, {
               reportDir: this.coverageDir,
               minimumCoverage: _minimumCoverage,
