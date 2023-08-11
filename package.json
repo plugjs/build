@@ -1,6 +1,6 @@
 {
   "name": "@plugjs/build",
-  "version": "0.4.22",
+  "version": "0.4.23",
   "description": "Simple shared build using PlugJS",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -32,7 +32,7 @@
   "dependencies": {
     "@plugjs/cov8": "^0.4.24",
     "@plugjs/eslint": "^0.4.24",
-    "@plugjs/eslint-plugin": "^0.1.10",
+    "@plugjs/eslint-plugin": "^0.1.11",
     "@plugjs/expect5": "^0.4.24",
     "@plugjs/plug": "^0.4.24",
     "@plugjs/typescript": "^0.4.24"
