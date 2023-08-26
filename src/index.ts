@@ -46,6 +46,15 @@ export interface TasksOptions {
   extraTypesDir?: string,
 
   /* ======================================================================== *
+   * EXTRA INPUTS                                                             *
+   * ======================================================================== */
+
+  /** Extra `find` defintions for additional coverage sources */
+  extraCoverage?: Parameters<typeof find>[]
+  /** Extra `find` defintions for additional linting sources */
+  extraLint?: Parameters<typeof find>[]
+
+  /* ======================================================================== *
    * PACKAGE.JSON OPTIONS                                                     *
    * ======================================================================== */
 
@@ -79,6 +88,8 @@ export interface TasksOptions {
   testGlob?: string,
   /** A glob pattern matching files to be exported (default: `index.*`) */
   exportsGlob?: string,
+  /** Extra glob patterns matching files to be exported (default: `[]`) */
+  exportsGlobs?: string[],
   /** Enable coverage when running tests (default: `true`) */
   coverage?: boolean,
   /** Minimum overall coverage percentage (default: `100`) */
@@ -117,6 +128,9 @@ export function tasks(options: TasksOptions = {}) {
     coverageDataDir: _coverageDataDir = '.coverage-data',
     extraTypesDir: _extraTypesDir = 'types',
 
+    extraLint: _extraLint = [],
+    extraCoverage: _extraCoverage = [],
+
     packageJson: _packageJson = 'package.json',
     outputPackageJson: _outputPackageJson = _packageJson,
 
@@ -129,6 +143,7 @@ export function tasks(options: TasksOptions = {}) {
     banners: _banners = !_parallelize,
     testGlob: _testGlob = '**/*.test.([cm])?ts',
     exportsGlob: _exportsGlob = 'index.*',
+    exportsGlobs: _exportsGlobs = [],
     coverage: _coverage = true,
     minimumCoverage: _minimumCoverage = 100,
     minimumFileCoverage: _minimumFileCoverage = 100,
@@ -220,6 +235,7 @@ export function tasks(options: TasksOptions = {}) {
     /** Find all source files to lint */
     _find_lint_sources(): Pipe {
       return merge([
+        ..._extraLint.map((args) => find(...args)),
         this._find_sources(),
         this._find_tests(),
         this._find_types(),
@@ -229,7 +245,10 @@ export function tasks(options: TasksOptions = {}) {
 
     /** Find all source files for coverage */
     _find_coverage_sources(): Pipe {
-      return this._find_sources()
+      return merge([
+        ..._extraCoverage.map((args) => find(...args)),
+        this._find_sources(),
+      ])
     },
 
     /* ====================================================================== *
@@ -404,8 +423,10 @@ export function tasks(options: TasksOptions = {}) {
 
       emitBanner('Updating exports in "package.json"')
 
+      const globs = [ this.exportsGlob, ..._exportsGlobs ] as const
+
       return merge([ files ])
-          .filter(this.exportsGlob, { directory: this.destDir, ignore: '**/*.map' })
+          .filter(...globs, { directory: this.destDir, ignore: '**/*.map' })
           .exports({
             cjsExtension: this.cjsExtension,
             esmExtension: this.esmExtension,
