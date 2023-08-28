@@ -235,20 +235,22 @@ export function tasks(options: TasksOptions = {}) {
     /** Find all source files to lint */
     _find_lint_sources(): Pipe {
       return merge([
+        find('**/*.([cm])?ts', '**/*.([cm])?js', { directory: this.sourceDir }),
+        find('**/*.([cm])?ts', '**/*.([cm])?js', { directory: this.testDir }),
+        find('**/*.([cm])?ts', '**/*.([cm])?js', { directory: this.extraTypesDir }),
         ..._extraLint.map((args) => find(...args)),
-        this._find_sources(),
-        this._find_tests(),
-        this._find_types(),
-        this._find_extra_types(),
       ])
     },
 
     /** Find all source files for coverage */
     _find_coverage_sources(): Pipe {
       return merge([
+        find('**/*.([cm])?ts', '**/*.([cm])?js', {
+          directory: this.sourceDir,
+          ignore: '**/*.d.([cm])?ts',
+        }),
         ..._extraCoverage.map((args) => find(...args)),
-        this._find_sources(),
-      ])
+      ]).debug()
     },
 
     /* ====================================================================== *
