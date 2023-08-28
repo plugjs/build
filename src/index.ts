@@ -216,12 +216,6 @@ export function tasks(options: TasksOptions = {}) {
       return find('**/*.d.([cm])?ts', { directory: this.sourceDir })
     },
 
-    /** Find all extra types definition files from `extraTypesDir` */
-    _find_extra_types(): Pipe {
-      if (! isDirectory(this.extraTypesDir)) return noop()
-      return find('**/*.d.([cm])?ts', { directory: this.extraTypesDir })
-    },
-
     /** Find all resource files (non-typescript files) within sources */
     _find_resources(): Pipe {
       return find('**/*', { directory: this.sourceDir, ignore: '**/*.([cm])?ts' })
