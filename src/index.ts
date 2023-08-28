@@ -14,7 +14,7 @@ import {
 } from '@plugjs/plug'
 import '@plugjs/typescript'
 
-import type { ESBuildOptions, Pipe } from '@plugjs/plug'
+import type { ESBuildOptions, FindOptions, Pipe } from '@plugjs/plug'
 
 export * from '@plugjs/plug'
 
@@ -50,9 +50,9 @@ export interface TasksOptions {
    * ======================================================================== */
 
   /** Extra `find` defintions for additional coverage sources */
-  extraCoverage?: Parameters<typeof find>[]
+  extraCoverage?: (readonly [ glob: string, ...globs: string[], options: FindOptions])[]
   /** Extra `find` defintions for additional linting sources */
-  extraLint?: Parameters<typeof find>[]
+  extraLint?: (readonly [ glob: string, ...globs: string[], options: FindOptions])[]
 
   /* ======================================================================== *
    * PACKAGE.JSON OPTIONS                                                     *
