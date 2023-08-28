@@ -231,7 +231,9 @@ export function tasks(options: TasksOptions = {}) {
       return merge([
         find('**/*.([cm])?ts', '**/*.([cm])?js', { directory: this.sourceDir }),
         find('**/*.([cm])?ts', '**/*.([cm])?js', { directory: this.testDir }),
-        find('**/*.([cm])?ts', '**/*.([cm])?js', { directory: this.extraTypesDir }),
+        isDirectory(this.extraTypesDir) ?
+          find('**/*.([cm])?ts', '**/*.([cm])?js', { directory: this.extraTypesDir }) :
+          noop(),
         ..._extraLint.map((args) => find(...args)),
       ])
     },
