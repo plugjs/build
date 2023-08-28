@@ -244,7 +244,7 @@ export function tasks(options: TasksOptions = {}) {
           ignore: '**/*.d.([cm])?ts',
         }),
         ..._extraCoverage.map((args) => find(...args)),
-      ]).debug()
+      ])
     },
 
     /* ====================================================================== *
