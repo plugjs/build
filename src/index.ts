@@ -3,12 +3,12 @@ import '@plugjs/eslint'
 import '@plugjs/expect5'
 import {
   banner,
-  build,
   find,
   fixExtensions,
   isDirectory,
   merge,
   noop,
+  plugjs,
   resolve,
   rmrf,
 } from '@plugjs/plug'
@@ -159,7 +159,7 @@ export function tasks(options: TasksOptions = {}) {
   // Merge esbuild defaults with specified options
   const esbuildMergedOptions = Object.assign({}, esbuildDefaults, _esbuildOptions)
 
-  return build({
+  return plugjs({
     /** The directory for the original sources (default: `src`) */
     sourceDir: _sourceDir,
     /** The destination directory of the transpiled sources (default: `dist`) */
@@ -287,7 +287,6 @@ export function tasks(options: TasksOptions = {}) {
         this._find_types(),
       ]).tsc('tsconfig.json', {
         noEmit: false,
-        rootDir: this.sourceDir,
         declaration: true,
         emitDeclarationOnly: true,
         outDir: this.destDir,
@@ -336,7 +335,6 @@ export function tasks(options: TasksOptions = {}) {
       await this
           ._find_tests()
           .tsc(tsconfig, {
-            rootDir: '.',
             noEmit: true,
             declaration: false,
             emitDeclarationOnly: false,
