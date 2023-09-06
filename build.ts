@@ -5,7 +5,7 @@ import type { Pipe } from './src/index'
 logging.logOptions.githubAnnotations = false
 
 export default build({
-  ...tasks({ testGlob: 'build.test.ts' }),
+  ...tasks({ testGlob: '*.test.ts' }),
 
   /** Override, as we want to ignore the whole test's `sample` directory */
   _find_lint_sources(): Pipe {
