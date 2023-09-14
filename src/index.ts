@@ -44,6 +44,8 @@ export interface TasksOptions {
   coverageDataDir?: string,
   /** A directory containing extra types to use while transpiling (default: `types`) */
   extraTypesDir?: string,
+  /** The `tsconfig.json` file used for _transpiling_ source TypeScript files (default: `tsconfig.json`) */
+  tsconfigJson?: string,
 
   /* ======================================================================== *
    * EXTRA INPUTS                                                             *
@@ -127,6 +129,7 @@ export function tasks(options: TasksOptions = {}) {
     coverageDir: _coverageDir = 'coverage',
     coverageDataDir: _coverageDataDir = '.coverage-data',
     extraTypesDir: _extraTypesDir = 'types',
+    tsconfigJson: _tsconfigJson = 'tsconfig.json',
 
     extraLint: _extraLint = [],
     extraCoverage: _extraCoverage = [],
@@ -172,6 +175,8 @@ export function tasks(options: TasksOptions = {}) {
     coverageDataDir: _coverageDataDir,
     /** A directory containing extra types to use while transpiling (default: `types`) */
     extraTypesDir: _extraTypesDir,
+    /** The `tsconfig.json` file used for _transpiling_ source TypeScript files (default: `tsconfig.json`) */
+    tsconfigJson: _tsconfigJson,
     /** The source `package.json` file (default: `package.json`) */
     packageJson: _packageJson,
     /** The source `package.json` file (default: same as `packageJson` option) */
@@ -285,7 +290,7 @@ export function tasks(options: TasksOptions = {}) {
       return merge([
         this._find_sources(),
         this._find_types(),
-      ]).tsc('tsconfig.json', {
+      ]).tsc(this.tsconfigJson, {
         noEmit: false,
         declaration: true,
         emitDeclarationOnly: true,
