@@ -452,8 +452,8 @@ export function tasks(options: TasksOptions = {}) {
         ])
       } else {
         await this.transpile()
-        await this.test_types(),
-        await (_coverage ? this.coverage() : this.test()),
+        await this.test_types()
+        await (_coverage ? this.coverage() : this.test())
         await this.lint()
       }
     },
