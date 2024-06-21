@@ -1,6 +1,6 @@
 {
   "name": "@plugjs/build",
-  "version": "0.6.0-beta.1",
+  "version": "0.6.0-beta.2",
   "description": "Simple shared build using PlugJS",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -29,7 +29,7 @@
     "test": "plug test",
     "transpile": "plug transpile"
   },
-  "dependencies": {
+  "peerDependencies": {
     "@plugjs/cov8": "eslintv9",
     "@plugjs/eslint": "eslintv9",
     "@plugjs/eslint-plugin": "eslintv9",
