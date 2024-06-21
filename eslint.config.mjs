@@ -5,7 +5,6 @@ export default [
 
   // ===== DEFINE THE LOCATION OF OUR TSCONFIG.JSON FILES ======================
   {
-    files: [ '**/*.ts', '**/*.cts', '**/*.mts' ],
     languageOptions: {
       parserOptions: {
         createDefaultProgram: false,
@@ -33,7 +32,10 @@ export default [
     },
   },
 
-  // ===== ENSURE THAT OUR MAIN FILES DEPEND ONLY ON PROPER DEPENDENCIES =======
+  // ===== IGNORED FILES =======================================================
+  // REMEMBER! Ignores *must* be in its own configuration, they can not coexist
+  // with "rules", "languageOptions", "files", ... or anything else, otherwise
+  // ESLint will blaantly ignore the ignore files!
   {
     ignores: [
       'coverage/',

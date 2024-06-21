@@ -375,8 +375,8 @@ export function tasks(options: TasksOptions = {}) {
     async test(): Promise<void> {
       if (_coverage && isDirectory(this.coverageDataDir)) await rmrf(this.coverageDataDir)
 
-      if (this.cjs === 'true') await this.test_cjs()
       if (this.esm === 'true') await this.test_esm()
+      if (this.cjs === 'true') await this.test_cjs()
     },
 
     /** Ensure tests have run and generate a coverage report */
