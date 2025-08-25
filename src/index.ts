@@ -284,8 +284,8 @@ export function tasks(options: TasksOptions = {}) {
     transpile_types(): Pipe {
       const extraTypesDir =
           isDirectory(this.extraTypesDir) ?
-              this.extraTypesDir :
-              undefined
+            this.extraTypesDir :
+            undefined
 
       return merge([
         this._find_sources(),
@@ -334,8 +334,8 @@ export function tasks(options: TasksOptions = {}) {
       const tsconfig = resolve(this.testDir, 'tsconfig.json')
       const extraTypesDir =
           isDirectory(this.extraTypesDir) ?
-              this.extraTypesDir :
-              undefined
+            this.extraTypesDir :
+            undefined
 
       await this
           ._find_tests()
