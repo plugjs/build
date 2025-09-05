@@ -1,10 +1,10 @@
-import { build, find, logging, merge, tasks } from './src/index'
+import { find, logging, merge, plugjs, tasks } from './src/index'
 
 import type { Pipe } from './src/index'
 
 logging.logOptions.githubAnnotations = false
 
-export default build({
+export default plugjs({
   ...tasks({ testGlob: '*.test.ts' }),
 
   /** Override, as we want to ignore the whole test's `sample` directory */
