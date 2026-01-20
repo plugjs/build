@@ -30,12 +30,12 @@
     "transpile": "plug transpile"
   },
   "peerDependencies": {
-    "@plugjs/cov8": "^0.6.88",
-    "@plugjs/eslint": "^0.6.88",
-    "@plugjs/eslint-plugin": "^0.5.17",
-    "@plugjs/expect5": "^0.6.88",
-    "@plugjs/plug": "^0.6.88",
-    "@plugjs/typescript": "^0.6.88"
+    "@plugjs/cov8": "^0.6.89",
+    "@plugjs/eslint": "^0.6.89",
+    "@plugjs/eslint-plugin": "^0.5.18",
+    "@plugjs/expect5": "^0.6.89",
+    "@plugjs/plug": "^0.6.89",
+    "@plugjs/typescript": "^0.6.89"
   },
   "files": [
     "*.md",
