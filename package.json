@@ -1,6 +1,6 @@
 {
   "name": "@plugjs/build",
-  "version": "0.6.77",
+  "version": "0.6.78",
   "description": "Simple shared build using PlugJS",
   "type": "module",
   "main": "./dist/index.cjs",
