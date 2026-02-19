@@ -1,6 +1,6 @@
 {
   "name": "@plugjs/build",
-  "version": "0.6.81",
+  "version": "0.6.82",
   "description": "Simple shared build using PlugJS",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -30,12 +30,12 @@
     "transpile": "plug transpile"
   },
   "peerDependencies": {
-    "@plugjs/cov8": "^0.6.92",
-    "@plugjs/eslint": "^0.6.92",
-    "@plugjs/eslint-plugin": "^0.5.21",
-    "@plugjs/expect5": "^0.6.92",
-    "@plugjs/plug": "^0.6.92",
-    "@plugjs/typescript": "^0.6.92"
+    "@plugjs/cov8": "^0.6.93",
+    "@plugjs/eslint": "^0.6.93",
+    "@plugjs/eslint-plugin": "^0.5.22",
+    "@plugjs/expect5": "^0.6.93",
+    "@plugjs/plug": "^0.6.93",
+    "@plugjs/typescript": "^0.6.93"
   },
   "files": [
     "*.md",
