@@ -1,6 +1,6 @@
 {
   "name": "@plugjs/build",
-  "version": "0.6.100",
+  "version": "0.6.101",
   "description": "Simple shared build using PlugJS",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -32,7 +32,7 @@
   "peerDependencies": {
     "@plugjs/cov8": "^0.6.111",
     "@plugjs/eslint": "^0.6.111",
-    "@plugjs/eslint-plugin": "^0.6.13",
+    "@plugjs/eslint-plugin": "^0.6.14",
     "@plugjs/expect5": "^0.6.111",
     "@plugjs/plug": "^0.6.111",
     "@plugjs/typescript": "^0.6.111"
