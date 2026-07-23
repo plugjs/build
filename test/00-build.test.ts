@@ -314,12 +314,12 @@ describe('PlugJS Shared Build', () => {
         version: '1.2.3',
         private: true,
         main: './index.cjs',
-        module: './index.mjs',
         types: './index.d.ts',
         exports: {
           '.': {
-            require: { types: './index.d.ts', default: './index.cjs' },
-            import: { types: './index.d.ts', default: './index.mjs' },
+            types: './index.d.ts',
+            import: './index.mjs',
+            default: './index.cjs',
           },
         },
       })
@@ -345,30 +345,38 @@ describe('PlugJS Shared Build', () => {
         version: '1.2.3',
         private: true,
         main: './index.cjs',
-        module: './index.mjs',
         types: './index.d.ts',
         exports: {
           '.': {
-            require: { types: './index.d.ts', default: './index.cjs' },
-            import: { types: './index.d.ts', default: './index.mjs' },
+            types: './index.d.ts',
+            import: './index.mjs',
+            default: './index.cjs',
           },
           './my_cts': {
-            require: { types: './my_cts.d.cts', default: './my_cts.cjs' },
+            types: './my_cts.d.cts',
+            default: './my_cts.cjs',
+          },
+          './my_dts': {
+            types: './my_dts.d.ts',
           },
           './my_mts': {
-            import: { types: './my_mts.d.mts', default: './my_mts.mjs' },
+            types: './my_mts.d.mts',
+            import: './my_mts.mjs',
           },
           './my_subpath': {
-            require: { types: './my_subpath/index.d.ts', default: './my_subpath/index.cjs' },
-            import: { types: './my_subpath/index.d.ts', default: './my_subpath/index.mjs' },
+            types: './my_subpath/index.d.ts',
+            import: './my_subpath/index.mjs',
+            default: './my_subpath/index.cjs',
           },
           './my_ts': {
-            require: { types: './my_ts.d.ts', default: './my_ts.cjs' },
-            import: { types: './my_ts.d.ts', default: './my_ts.mjs' },
+            types: './my_ts.d.ts',
+            import: './my_ts.mjs',
+            default: './my_ts.cjs',
           },
           './my_xts': {
-            require: { types: './my_xts.d.cts', default: './my_xts.cjs' },
-            import: { types: './my_xts.d.mts', default: './my_xts.mjs' },
+            types: expect.toMatch(/^\.\/my_xts\.d\.[cm]ts$/),
+            import: './my_xts.mjs',
+            default: './my_xts.cjs',
           },
         },
       })
@@ -397,19 +405,27 @@ describe('PlugJS Shared Build', () => {
         types: './index.d.ts',
         exports: {
           '.': {
-            require: { types: './index.d.ts', default: './index.cjs' },
+            types: './index.d.ts',
+            default: './index.cjs',
           },
           './my_cts': {
-            require: { types: './my_cts.d.cts', default: './my_cts.cjs' },
+            types: './my_cts.d.cts',
+            default: './my_cts.cjs',
+          },
+          './my_dts': {
+            types: './my_dts.d.ts',
           },
           './my_subpath': {
-            require: { types: './my_subpath/index.d.ts', default: './my_subpath/index.cjs' },
+            types: './my_subpath/index.d.ts',
+            default: './my_subpath/index.cjs',
           },
           './my_ts': {
-            require: { types: './my_ts.d.ts', default: './my_ts.cjs' },
+            types: './my_ts.d.ts',
+            default: './my_ts.cjs',
           },
           './my_xts': {
-            require: { types: './my_xts.d.cts', default: './my_xts.cjs' },
+            types: expect.toMatch(/^\.\/my_xts\.d\.[cm]ts$/),
+            default: './my_xts.cjs',
           },
         },
       })
@@ -424,6 +440,7 @@ describe('PlugJS Shared Build', () => {
 
     try {
       const outputPackageJson = resolve(destDir, 'package.json')
+
       const files = await tasks({ cjs: false, banners }).exports({ destDir, outputPackageJson, exportsGlob: '**/*.*' })
 
       expect([ ...files.absolutePaths() ]).toEqual([ outputPackageJson ])
@@ -434,23 +451,30 @@ describe('PlugJS Shared Build', () => {
         name: 'a-test-project',
         version: '1.2.3',
         private: true,
-        module: './index.mjs',
         types: './index.d.ts',
         exports: {
           '.': {
-            import: { types: './index.d.ts', default: './index.mjs' },
+            types: './index.d.ts',
+            import: './index.mjs',
+          },
+          './my_dts': {
+            types: './my_dts.d.ts',
           },
           './my_mts': {
-            import: { types: './my_mts.d.mts', default: './my_mts.mjs' },
+            types: './my_mts.d.mts',
+            import: './my_mts.mjs',
           },
           './my_subpath': {
-            import: { types: './my_subpath/index.d.ts', default: './my_subpath/index.mjs' },
+            types: './my_subpath/index.d.ts',
+            import: './my_subpath/index.mjs',
           },
           './my_ts': {
-            import: { types: './my_ts.d.ts', default: './my_ts.mjs' },
+            types: './my_ts.d.ts',
+            import: './my_ts.mjs',
           },
           './my_xts': {
-            import: { types: './my_xts.d.mts', default: './my_xts.mjs' },
+            types: expect.toMatch(/^\.\/my_xts\.d\.[cm]ts$/),
+            import: './my_xts.mjs',
           },
         },
       })
