@@ -46,23 +46,23 @@ export const tasks = plugjs({
     log(`Updating ${$p(targetPackage)}`)
 
     // Default scripts
-    targetJson.scripts = sortByKey({
+    targetJson['scripts'] = sortByKey({
       build: 'plug',
       coverage: 'plug coverage',
       dev: 'plug coverage -w src -w test',
       lint: 'plug lint',
       test: 'plug test',
       transpile: 'plug transpile',
-      ...targetJson.scripts,
+      ...targetJson['scripts'],
     })
 
     // Exported/packaged files
-    const targetFiles = new Set([ ...(targetJson.files || []), '*.md', 'dist/', 'src/' ])
-    targetJson.files = [ ...targetFiles ].sort()
+    const targetFiles = new Set([ ...(targetJson['files'] || []), '*.md', 'dist/', 'src/' ])
+    targetJson['files'] = [ ...targetFiles ].sort()
 
     // *DEV* dependency on this build
-    targetJson.devDependencies = sortByKey({
-      ...targetJson.devDependencies,
+    targetJson['devDependencies'] = sortByKey({
+      ...targetJson['devDependencies'],
       [buildJson.name]: `^${buildJson.version}`,
     })
 
